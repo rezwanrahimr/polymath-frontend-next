@@ -1,0 +1,117 @@
+'use client'; // This is needed since we're using React hooks
+
+import React, { useState } from 'react';
+import Image from 'next/image';
+import Logo from '../assets/logo.png';
+
+const ForgetPasswordPage2: React.FC = () => {
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
+
+    const handleSubmit = async () => {
+        setIsLoading(true);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            console.log('Passwords submitted:', newPassword, confirmPassword);
+            // Handle submission logic here
+        } catch (error) {
+            console.error('Submission failed:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div
+            className="min-h-screen flex items-center justify-center px-4 py-8"
+            style={{
+                background: 'linear-gradient(135deg, #0D1117 0%, #1a2332 50%, #0D1117 100%)'
+            }}
+        >
+            <div className="w-[669px]">
+                {/* Logo */}
+                <div className="text-center mb-8">
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                        <Image 
+                            src={Logo} 
+                            alt='Polymath' 
+                            width={258} 
+                            height={64}
+                            priority // Optional: if this is above the fold
+                        />
+                    </div>
+                </div>
+
+                {/* Form */}
+                <div className="bg-[#1a2332] rounded-xl p-8 shadow-2xl border border-gray-700">
+                    <h2 className="text-[#00FFFF] text-[32px] font-medium text-center mb-6">
+                        Enter New Password
+                    </h2>
+
+                    <hr className="opacity-25 mb-6 bg-gray-700" />
+
+                    <div className="space-y-4">
+                        {/* New Password */}
+                        <label htmlFor="newPassword" className="block text-[#FFFFFF] text-[18px] font-normal mb-2">
+                            New Password
+                        </label>
+                        <input
+                            id="newPassword"
+                            type="password"
+                            placeholder="**********"
+                            value={newPassword}
+                            onChange={e => setNewPassword(e.target.value)}
+                            className="w-full h-[55px] px-4 text-base bg-[#0D1117] text-[#FFFFFF] rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#00FFFF] placeholder-gray-500"
+                        />
+
+                        {/* Confirm Password */}
+                        <label htmlFor="confirmPassword" className="block text-[#FFFFFF] text-[18px] font-normal mb-2">
+                            Confirm Password
+                        </label>
+                        <input
+                            id="confirmPassword"
+                            type="password"
+                            placeholder="***********"
+                            value={confirmPassword}
+                            onChange={e => setConfirmPassword(e.target.value)}
+                            className="w-full h-[55px] px-4 text-base bg-[#0D1117] text-[#FFFFFF] rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#00FFFF] placeholder-gray-500"
+                        />
+
+                        {/* Confirm Button */}
+                        <button
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={isLoading || !newPassword || !confirmPassword}
+                            className="w-full h-[55px] bg-gradient-to-r from-[#00FF7F] to-[#00E66B] text-[#0D1117] font-bold rounded-md hover:opacity-90 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center justify-center gap-2">
+                                    <div className="w-5 h-5 border-2 border-[#0D1117] border-t-transparent rounded-full animate-spin"></div>
+                                    Confirming...
+                                </div>
+                            ) : (
+                                'Confirm'
+                            )}
+                        </button>
+
+                        {/* Remember Me */}
+                        <div className="flex items-center text-[#FFFFFF] text-[18px] font-normal">
+                            <input
+                                type="checkbox"
+                                id="rememberMe"
+                                checked={rememberMe}
+                                onChange={() => setRememberMe(!rememberMe)}
+                                className="mr-2"
+                            />
+                            <label htmlFor="rememberMe">Remember me</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ForgetPasswordPage2;
