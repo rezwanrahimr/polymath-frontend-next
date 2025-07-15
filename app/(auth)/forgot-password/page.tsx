@@ -1,7 +1,8 @@
+'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
-import Logo from '../assets/logo.png';
+import Logo from '../../../public/images/logo.png';
+import { useRouter } from 'next/navigation';
 
 const ForgotPasswordPage1 = () => {
     const [code, setCode] = useState<string>('');
@@ -34,7 +35,7 @@ const ForgotPasswordPage1 = () => {
 
         try {
             await new Promise(resolve => setTimeout(resolve, 1500));
-            router.push('/forgot-password-2');
+            router.push('/forgot-password/verify');
             console.log('Code submitted:', code);
             // Handle successful submission here
         } catch (error) {
@@ -60,7 +61,7 @@ const ForgotPasswordPage1 = () => {
     };
 
     const handleBackToLogin = () => {
-        router.push('/');
+        router.push('/login');
     };
 
     return (

@@ -194,7 +194,7 @@ const LoginPage: React.FC = () => {
               <button
                 type="button"
                 className="text-[#00FFFF] text-[18px] font-normal hover:text-[#00E6E6] transition-colors"
-                onClick={() => router.push('/forgot-password-1')}
+                onClick={() => router.push('/forgot-password')}
               >
                 Forgot Password?
               </button>

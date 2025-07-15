@@ -1,8 +1,8 @@
-'use client'; // This is needed since we're using React hooks
+'use client';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import Logo from '../assets/logo.png';
+import Logo from '../../../../public/images/logo.png';
 
 const ForgetPasswordPage2: React.FC = () => {
     const [newPassword, setNewPassword] = useState('');
