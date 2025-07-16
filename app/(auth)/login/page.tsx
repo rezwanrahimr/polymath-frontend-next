@@ -79,6 +79,7 @@ const LoginPage: React.FC = () => {
     // API call
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      router.push('/dashboard');
       console.log('Login successful:', formData);
       // Handle successful login here
       // router.push('/dashboard');
@@ -113,7 +114,7 @@ const LoginPage: React.FC = () => {
           onSubmit={handleSubmit}
           className="bg-[#1a2332] rounded-xl p-8 shadow-2xl border border-gray-700"
         >
-          <h2 className="text-[#00FFFF] text-[32px] font-semibold text-center mb-6">Login</h2>
+          <h2 className="text-[#00FFFF] text-[24px] font-semibold text-center mb-6">Login</h2>
           <hr className="opacity-25 mb-5 bg-gray-700" />
           <div className="space-y-6">
             {/* Email Field */}
@@ -167,7 +168,7 @@ const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-[55px] py-3 bg-[#00FF7F] text-[24px]  text-[#0D1117] font-bold rounded-lg hover:bg-[#00E66B] focus:outline-none focus:ring-2 focus:ring-[#00FF7F] focus:ring-offset-2 focus:ring-offset-[#1a2332] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-[55px] py-3 bg-[#00FF7F] text-lg  text-[#0D1117] font-semibold rounded-lg hover:bg-[#00E66B] focus:outline-none focus:ring-2 focus:ring-[#00FF7F] focus:ring-offset-2 focus:ring-offset-[#1a2332] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">

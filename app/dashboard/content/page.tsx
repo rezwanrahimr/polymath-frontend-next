@@ -39,7 +39,7 @@ const AIContentWriter = () => {
     console.log(`${activeTab} with:`, { prompt, tone, wordCount });
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e:any) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       handleAction();
     }
@@ -191,8 +191,8 @@ const AIContentWriter = () => {
                     onClick={handleAction}
                     disabled={!prompt.trim() || isGenerating}
                     className={`px-6 py-2 rounded-lg font-medium transition-all ${!prompt.trim() || isGenerating
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-[#00FF7F] to-[#00C260] text-black hover:from-[#00E070] hover:to-[#00B055] hover:scale-105'
+                      ? 'bg-[#00FF7F] text-black cursor-not-allowed'
+                      : 'bg-[#00FF7F] from-[#00FF7F] to-[#00C260] text-black hover:from-[#00E070] hover:to-[#00B055] hover:scale-105'
                       }`}
                   >
                     {isGenerating ? (

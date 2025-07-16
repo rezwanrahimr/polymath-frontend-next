@@ -4,10 +4,17 @@ import type React from "react"
 import { useState } from "react"
 import { Download } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Label } from "recharts"
+import IssueModal from "@/components/IssueModal"
 
 const MainContent: React.FC = () => {
   const [url, setUrl] = useState("")
   const [activeTab, setActiveTab] = useState("overview")
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentIssue, setCurrentIssue] = useState<{
+    type: 'image' | 'content' | 'keyword';
+    data: any;
+  } | null>(null);
+
 
   const chartData = [
     { month: "JAN", health: 75, issues: 5 },
@@ -45,22 +52,22 @@ const MainContent: React.FC = () => {
       {
         url: "www.google.com/yourimagelocationurl",
         issues: [
-          { type: "Broken Link", severity: "high" },
-          { type: "Solution", severity: "solution" }
+          { type: "Broken Link", severity: "high", typeCategory: "image" },
+          { type: "Solution", severity: "solution", typeCategory: "image" }
         ]
       },
       {
         url: "www.google.com/yourimagelocationurl",
         issues: [
-          { type: "Low Reputation", severity: "medium" },
-          { type: "Solution", severity: "solution" }
+          { type: "Low Reputation", severity: "medium", typeCategory: "image" },
+          { type: "Solution", severity: "solution", typeCategory: "image" }
         ]
       },
       {
         url: "www.google.com/yourimagelocationurl",
         issues: [
-          { type: "Size Issue", severity: "medium" },
-          { type: "Solution", severity: "solution" }
+          { type: "Size Issue", severity: "medium", typeCategory: "image" },
+          { type: "Solution", severity: "solution", typeCategory: "image" }
         ]
       }
     ],
@@ -68,24 +75,24 @@ const MainContent: React.FC = () => {
       {
         url: "www.google.com/yourimagelocationurl",
         issues: [
-          { type: "Heading", severity: "high" },
+          { type: "Heading", severity: "high", typeCategory: "content" },
           { type: "Low Reputation", severity: "medium" },
-          { type: "Solution", severity: "solution" }
+          { type: "Solution", severity: "solution", typeCategory: "content" }
         ]
       },
       {
         url: "www.google.com/yourimagelocationurl",
         issues: [
-          { type: "Image are Blurry", severity: "high" },
-          { type: "Solution", severity: "solution" }
+          { type: "Image are Blurry", severity: "high", typeCategory: "content" },
+          { type: "Solution", severity: "solution", typeCategory: "content" }
         ]
       },
       {
         url: "www.google.com/yourimagelocationurl",
         issues: [
-          { type: "Image are Blurry", severity: "high" },
-          { type: "Low Reputation", severity: "medium" },
-          { type: "Solution", severity: "solution" }
+          { type: "Image are Blurry", severity: "high", typeCategory: "content" },
+          { type: "Low Reputation", severity: "medium", typeCategory: "content" },
+          { type: "Solution", severity: "solution", typeCategory: "content" }
         ]
       }
     ],
@@ -93,41 +100,26 @@ const MainContent: React.FC = () => {
       {
         url: "www.google.com/yourimagelocationurl",
         issues: [
-          { type: "Low Keyword", severity: "high" },
-          { type: "Basic", severity: "info" },
-          { type: "Solution", severity: "solution" }
+          { type: "Low Keyword", severity: "high", typeCategory: "keyword" },
+          { type: "Basic", severity: "info", typeCategory: "keyword" },
+          { type: "Solution", severity: "solution", typeCategory: "keyword" }
         ]
       },
       {
         url: "www.google.com/yourimagelocationurl",
         issues: [
-          { type: "Image are Blurry", severity: "high" },
-          { type: "Solution", severity: "solution" }
+          { type: "Image are Blurry", severity: "high", typeCategory: "keyword" },
+          { type: "Solution", severity: "solution", typeCategory: "keyword" }
         ]
       },
       {
         url: "www.google.com/yourimagelocationurl",
         issues: [
-          { type: "Image are Blurry", severity: "high" },
-          { type: "Solution", severity: "solution" }
+          { type: "Image are Blurry", severity: "high", typeCategory: "keyword" },
+          { type: "Solution", severity: "solution", typeCategory: "keyword" }
         ]
       }
     ]
-  }
-
-  const getSeverityTextColor = (severity: string) => {
-    switch (severity) {
-      case "high":
-        return "text-red-500"
-      case "medium":
-        return "text-orange-500"
-      case "info":
-        return "text-blue-500"
-      case "solution":
-        return "text-green-500"
-      default:
-        return "text-gray-500"
-    }
   }
 
   const renderIssueGroup = (title: string, issues: any[]) => (
@@ -144,7 +136,7 @@ const MainContent: React.FC = () => {
                   <path d="M11 11.5L11 7.5" stroke="#C8081B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
 
-                <span className="text-white text-lg underline cursor-pointer hover:text-blue-300">
+                <span className="text-white text-base underline cursor-pointer hover:text-blue-300">
                   {item.url}
                 </span>
               </div>
@@ -153,7 +145,9 @@ const MainContent: React.FC = () => {
               {item.issues.map((issue: any, issueIndex: number) => (
                 <button
                   key={issueIndex}
-                  className={`px-3 py-1 rounded-xl text-[18px] font-normal ${issue.severity === "solution" ? "bg-green-300/10 text-[#00FF7F] border border-[#00FF7F] px-6" : issue.severity === "high" ? "bg-[#DC091E] text-white" : "bg-yellow-500 text-white"} }`}
+                  onClick={() => handleOpenModal(issue.typeCategory)}
+                  className={`px-3 py-1 rounded-xl text-normal font-normal ${issue.severity === "solution" ? "bg-green-300/10 text-[#00FF7F] border border-[#00FF7F] px-6" : issue.severity === "high" ? "bg-[#DC091E] text-white" : "bg-yellow-500 text-white"} }`
+                  }
                 >
                   {issue?.solution === 'high' ? <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6.40016 1.5C3.96705 1.50438 2.69295 1.56411 1.87871 2.37836C1 3.25706 1 4.67132 1 7.49983C1 10.3283 0.999999 11.7426 1.8787 12.6213C2.75741 13.5 4.17166 13.5 7.00017 13.5C9.82868 13.5 11.2429 13.5 12.1216 12.6213C12.9359 11.8071 12.9956 10.533 13 8.09984" stroke="white" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" />
@@ -169,22 +163,33 @@ const MainContent: React.FC = () => {
     </div>
   );
 
-
   const renderErrorContent = () => (
     <div className="p-4 md:p-6">
-      <div className="bg-white/5 rounded-lg p-4 mb-6">
+      <div className="bg-white/5 rounded-lg p-8 mb-6">
         {renderIssueGroup("Image Issues", errorData.imageIssues)}
       </div>
-      <div className="bg-white/5 rounded-lg p-4 mb-6">
+      <div className="bg-white/5 rounded-lg p-8 mb-6">
         {renderIssueGroup("Content Issues", errorData.contentIssues)}
       </div>
-      <div className="bg-white/5 rounded-lg p-4 mb-6">
+      <div className="bg-white/5 rounded-lg p-8 mb-6">
         {renderIssueGroup("Keyword Issues", errorData.keywordIssues)}
       </div>
 
 
     </div>
   )
+
+  // function for modal handling
+  const handleOpenModal = (issueType: 'image' | 'content' | 'keyword') => {
+    setCurrentIssue({ type: issueType, data: errorData });
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setCurrentIssue(null);
+  };
+
 
   return (
     <div className="min-h-screen bg-[#0D1117] text-white">
@@ -234,7 +239,7 @@ const MainContent: React.FC = () => {
               {/* Analyze button (right side) */}
               <button
                 onClick={handleAnalyze}
-                className="absolute inset-y-0 right-0 hidden md:flex items-center justify-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 m-2 w-[172px] h-[55px] text-black font-normal"
+                className="absolute inset-y-0 right-0 hidden md:flex items-center justify-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 m-2 mt-3 w-[160px] h-[45px] text-black font-normal"
                 style={{ background: "linear-gradient(to right, #00FF7F, #00C260)" }}
               >
                 <span className="text-[20px]">Analyze</span>
@@ -504,6 +509,14 @@ const MainContent: React.FC = () => {
           </div>
         </div>
       </div>
+      {currentIssue && (
+        <IssueModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          issueType={currentIssue.type}
+          issueData={currentIssue.data}
+        />
+      )}
     </div>
   )
 }

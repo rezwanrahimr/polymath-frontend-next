@@ -18,7 +18,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const pathname = usePathname(); // Get current path
+  const pathname = usePathname();
 
   // navItems same as before
   const navItems: NavItem[] = [
@@ -64,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </svg>
 
       ),
-      href: '/keywords'
+      href: '/dashboard/keywords'
     },
     {
       id: 'history',
@@ -91,7 +91,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </svg>
 
       ),
-      href: '/setting'
+      href: '/dashboard/settings'
     }
   ];
 
@@ -119,7 +119,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       >
         {/* Logo */}
         <div className="p-6 border-b border-teal-700 h-[110px] flex justify-between items-center">
-          <Image src="/images/logo.png" alt="Polymath Logo" width={188} height={46} />
+          <Link href="/dashboard">   <Image src="/images/logo.png" alt="Polymath Logo" width={188} height={46} />
+          </Link>
+          {/* Close button for mobile */}
           <button onClick={onClose} className="md:hidden text-white">
             <X size={24} />
           </button>
