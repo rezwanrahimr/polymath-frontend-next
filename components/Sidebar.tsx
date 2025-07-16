@@ -3,8 +3,14 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { X } from 'lucide-react';
+import { usePathname } from 'next/navigation'; // Add this import
 
-interface NavItem { /* same as before */ }
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  href: string;
+}
 
 interface SidebarProps {
   isOpen: boolean;
@@ -12,6 +18,8 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const pathname = usePathname(); // Get current path
+
   // navItems same as before
   const navItems: NavItem[] = [
     {
@@ -87,6 +95,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     }
   ];
 
+  // Function to check if a nav item is active
+  const isActive = (href: string) => {
+    return pathname === href ||
+      (href !== '/dashboard' && pathname.startsWith(href));
+  };
+
   return (
     <>
       {/* Overlay for mobile */}
@@ -119,11 +133,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <Link
                   href={item.href}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200
-                    ${item.id === 'overview'
+                    ${isActive(item.href)
                       ? 'text-black'
                       : 'text-teal-200 hover:bg-teal-700 text-white'}
                   `}
-                  style={item.id === 'overview' ? { background: 'linear-gradient(to right, #00FF7F, #00C260)' } : {}}
+                  style={isActive(item.href) ? { background: 'linear-gradient(to right, #00FF7F, #00C260)' } : {}}
                 >
                   {item.icon}
                   <span className="text-[20px] font-normal">{item.label}</span>
