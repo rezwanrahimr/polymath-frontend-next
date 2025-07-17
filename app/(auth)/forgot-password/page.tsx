@@ -67,15 +67,19 @@ const ForgotPasswordPage1 = () => {
     return (
         <div className="min-h-screen flex items-center justify-center px-4 py-8"
             style={{
-                background: 'linear-gradient(135deg, #0D1117 0%, #1a2332 50%, #0D1117 100%)'
+                backgroundImage: 'url(/images/BG_Frame.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: '#0D1117',
             }}>
             <div className="w-full max-w-[669px]">
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <div className="flex items-center justify-center gap-3 mb-2">
-                        <Image 
-                            src={Logo} 
-                            alt='Polymath' 
+                        <Image
+                            src={Logo}
+                            alt='Polymath'
                             width={258}
                             height={64}
                             priority
@@ -84,12 +88,12 @@ const ForgotPasswordPage1 = () => {
                 </div>
 
                 {/* Forgot Password Form */}
-                <div className="bg-[#1a2332] rounded-xl p-8 shadow-2xl border border-gray-700">
+                <div className="bg-white/4 rounded-xl p-8 shadow-2xl border-[1px] border-white/4">
                     <h2 className="text-[#00FFFF] text-[32px] font-semibold text-center mb-6">
                         Forgot Password
                     </h2>
 
-                    <hr className='opacity-25 mb-5 bg-gray-700' />
+                    <div className="mb-5 bg-white/8  h-[2px]" />
 
                     <div className="space-y-6">
                         {/* Information text */}

@@ -98,7 +98,11 @@ const LoginPage: React.FC = () => {
     <div
       className="min-h-screen flex items-center justify-center px-4 py-8"
       style={{
-        background: 'linear-gradient(135deg, #0D1117 0%, #1a2332 50%, #0D1117 100%)',
+        backgroundImage: 'url(/images/BG_Frame.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: '#0D1117',
       }}
     >
       <div className="w-[669px]">
@@ -112,10 +116,10 @@ const LoginPage: React.FC = () => {
         {/* Login Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-[#1a2332] rounded-xl p-8 shadow-2xl border border-gray-700"
+          className="bg-white/4 rounded-xl p-8 shadow-2xl border-[1px] border-white/4 "
         >
           <h2 className="text-[#00FFFF] text-[24px] font-semibold text-center mb-6">Login</h2>
-          <hr className="opacity-25 mb-5 bg-gray-700" />
+          <div className="mb-5 bg-white/8  h-[2px]" />
           <div className="space-y-6">
             {/* Email Field */}
             <div>
