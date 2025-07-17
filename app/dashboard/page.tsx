@@ -5,6 +5,8 @@ import { useState } from "react"
 import { Download } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Label } from "recharts"
 import IssueModal from "@/components/IssueModal"
+import { MetricCard } from "@/types"
+import DashboardMetrics from "@/components/DashboardMetrics"
 
 const MainContent: React.FC = () => {
   const [url, setUrl] = useState("")
@@ -121,6 +123,36 @@ const MainContent: React.FC = () => {
       }
     ]
   }
+
+  // Metric Cards
+
+  const metricData: MetricCard[] = [
+    {
+      title: 'Authority Score',
+      value: 25,
+      change: '-20%',
+    },
+    {
+      title: 'Organic Traffic',
+      value: 857,
+      change: '+2.5%',
+    },
+    {
+      title: 'Organic Keywords',
+      value: 412,
+      change: '-8%',
+    },
+    {
+      title: 'Paid Keywords',
+      value: 75,
+      change: '+8.5%',
+    },
+    {
+      title: 'Backlinks',
+      value: 351,
+      change: '-8.5%',
+    }
+  ]
 
   const renderIssueGroup = (title: string, issues: any[]) => (
     <div className="mb-8">
@@ -379,47 +411,8 @@ const MainContent: React.FC = () => {
                 </div>
 
                 {/* Metrics Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-                  <div className="bg-white/5 rounded-lg p-4">
-                    <p className="text-white text-sm md:text-lg mb-2">Authority Score</p>
-                    <div className="flex items-center justify-between space-x-2">
-                      <span className="text-xl md:text-2xl font-bold text-[#00FFFF]">25</span>
-                      <span className="text-red-500 text-sm">-20%</span>
-                    </div>
-                  </div>
+                <DashboardMetrics metrics={metricData} />
 
-                  <div className="bg-white/5 rounded-lg p-4 ">
-                    <p className="text-white text-sm md:text-lg mb-2">Organic Traffic</p>
-                    <div className="flex items-center justify-between space-x-2">
-                      <span className="text-xl md:text-2xl font-bold text-[#00FFFF]">857</span>
-                      <span className="text-green-500 text-sm">+2.5%</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/5 rounded-lg p-4 ">
-                    <p className="text-white text-sm md:text-lg mb-2">Organic Keywords</p>
-                    <div className="flex items-center justify-between space-x-2">
-                      <span className="text-xl md:text-2xl font-bold text-[#00FFFF]">412</span>
-                      <span className="text-red-500 text-sm">-8%</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/5 rounded-lg p-4 ">
-                    <p className="text-white text-sm md:text-lg mb-2">Paid Keywords</p>
-                    <div className="flex items-center justify-between space-x-2">
-                      <span className="text-xl md:text-2xl font-bold text-[#00FFFF]">75</span>
-                      <span className="text-green-500 text-sm">+8.5%</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/5 rounded-lg p-4 ">
-                    <p className="text-white text-sm md:text-lg mb-2">Backlinks</p>
-                    <div className="flex items-center justify-between space-x-2">
-                      <span className="text-xl md:text-2xl font-bold text-[#00FFFF]">351</span>
-                      <span className="text-red-500 text-sm">-8.5%</span>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Bottom Section with Site Health and Chart */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
