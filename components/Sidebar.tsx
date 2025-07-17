@@ -111,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       <aside
         className={`
-          fixed z-50 top-0 left-0 h-full w-[271px] bg-[#003D3D] flex flex-col rounded-r-[30px]
+          fixed z-50 top-0 left-0 h-full w-[230px] bg-[#003D3D] flex flex-col rounded-r-[30px]
           transform transition-transform duration-300
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0 md:static
@@ -142,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   style={isActive(item.href) ? { background: 'linear-gradient(to right, #00FF7F, #00C260)' } : {}}
                 >
                   {item.icon}
-                  <span className="text-[20px] font-normal">{item.label}</span>
+                  <span className="text-[18px] font-normal">{item.label}</span>
                 </Link>
               </li>
             ))}

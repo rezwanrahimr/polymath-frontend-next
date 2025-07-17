@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { ArrowRight, Menu } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,6 +9,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const route = useRouter();
   const path = usePathname();
 
   const toggleProfile = () => {
@@ -33,6 +34,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         return 'Overview';
     }
   }
+
+  const handleSignOut = () => {
+    route.push('/login');
+  };
 
   return (
     <header className="relative h-[110px] bg-[#0D1117] ps-8 pe-12 py-4 flex items-center justify-between">
@@ -103,7 +108,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 </div>
               </div>
               <div className="px-5 pb-4">
-                <button className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                <button className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors" onClick={() => handleSignOut()}>
                   Sign Out
                 </button>
               </div>

@@ -265,13 +265,13 @@ const MainContent: React.FC = () => {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="w-full h-[60px] md:h-[71px] bg-transparent border border-gray-600 rounded-lg py-3 pl-12 pr-4 md:pr-48 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full h-[60px] md:h-[50px] bg-transparent border border-gray-600 rounded-lg py-3 pl-12 pr-4 md:pr-48 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
 
               {/* Analyze button (right side) */}
               <button
                 onClick={handleAnalyze}
-                className="absolute inset-y-0 right-0 hidden md:flex items-center justify-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 m-2 mt-3 w-[160px] h-[45px] text-black font-normal"
+                className="absolute inset-y-0 right-0 hidden md:flex items-center justify-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 m-2  w-[130px] h-[35px] text-black font-normal cursor-pointer"
                 style={{ background: "linear-gradient(to right, #00FF7F, #00C260)" }}
               >
                 <span className="text-[20px]">Analyze</span>
