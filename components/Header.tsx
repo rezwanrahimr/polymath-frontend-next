@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Menu } from 'lucide-react';
+import { ArrowRight, Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 interface HeaderProps {
@@ -25,23 +25,30 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         return 'Keyword Research with AI';
       case '/dashboard/settings':
         return 'Settings';
+      case '/dashboard/history/preview':
+        return <span className="flex items-center gap-2">
+         <span className='text-gray-400'>History</span> <ArrowRight size={22} /> Preview
+        </span>
       default:
         return 'Overview';
     }
   }
 
   return (
-    <header className="h-[110px] px-6 py-4 flex items-center justify-between border-b border-gray-600 relative">
-      {/* Hamburger on mobile */}
-      <div className="flex items-center space-x-3">
+    <header className="relative h-[110px] bg-[#0D1117] ps-8 pe-12 py-4 flex items-center justify-between">
+      {/* Bottom border with left/right gap */}
+      <div className="absolute bottom-0 left-8 right-12 h-[2px] bg-white/24" />
+
+      {/* Left: Page Title and Menu */}
+      <div className="flex items-center space-x-3 z-10">
         <button onClick={onMenuClick} className="md:hidden text-white">
           <Menu size={28} />
         </button>
-        <h1 className="text-[32px] font-semibold text-white">{getHeaderName()}</h1>
+        <h1 className="text-lg md:text-[32px] font-semibold text-white ">{getHeaderName()}</h1>
       </div>
 
-      {/* User profile */}
-      <div className="flex items-center space-x-3">
+      {/* Right: Profile Section */}
+      <div className="flex items-center space-x-3 z-10">
         <div className="relative">
           <button
             onClick={toggleProfile}
@@ -58,19 +65,23 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             </div>
             <span className="text-[#00FFFF] text-[24px] font-normal">Shivamo</span>
             <svg
-              className={`w-4 h-4 text-gray-400 transition-transform ${isProfileOpen ? 'transform rotate-180' : ''}`}
+              className={`w-4 h-4 text-gray-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''
+                }`}
               fill="currentColor"
               viewBox="0 0 20 20"
             >
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
 
-          {/* Updated Profile dropdown to match the image */}
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-[234px] bg-gray-400 rounded-md shadow-lg py-1 z-50 border border-gray-600">
-              <div className="px-4 py-4 flex flex-col items-center">
-                <div className="w-16 h-16 bg-gray-600 rounded-full overflow-hidden mb-3">
+            <div className="absolute right-0 mt-2 w-64 bg-[#0D1117] rounded-xl shadow-xl border border-gray-700 z-50">
+              <div className="px-5 py-5 flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#00FFFF] shadow-md">
                   <Image
                     src="/api/placeholder/64/64"
                     alt="User Avatar"
@@ -79,14 +90,21 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <p className="text-black text-lg font-medium">Shivamo</p>
-                <p className="text-gray-400 text-sm">Name</p>
-                <p className="text-gray-400 text-sm mt-4">Mail</p>
+
+                <div className="mt-4 w-full text-left space-y-2">
+                  <div>
+                    <p className="text-[#00FFFF] font-medium text-sm">Name</p>
+                    <p className="text-white font-semibold text-sm">Shivamo Beroiuk</p>
+                  </div>
+                  <div>
+                    <p className="text-[#00FFFF] font-medium text-sm">Email</p>
+                    <p className="text-white break-all text-sm">shivamoberoiuk@gmail.com</p>
+                  </div>
+                </div>
               </div>
-              <div className="border-t border-gray-600 my-2"></div>
-              <div className="px-4 py-2">
-                <button className="block w-full text-left py-2 text-white hover:bg-gray-700 rounded">
-                  Sign out
+              <div className="px-5 pb-4">
+                <button className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                  Sign Out
                 </button>
               </div>
             </div>
@@ -95,6 +113,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       </div>
     </header>
   );
+
 };
 
 export default Header;

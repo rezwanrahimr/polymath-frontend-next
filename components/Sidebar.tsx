@@ -118,7 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         `}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-teal-700 h-[110px] flex justify-between items-center">
+        <div className="p-6 border-b-[2px] border-white/24 h-[110px] flex justify-between items-center">
           <Link href="/dashboard">   <Image src="/images/logo.png" alt="Polymath Logo" width={188} height={46} />
           </Link>
           {/* Close button for mobile */}

@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import React, { useState, useMemo } from 'react';
 
 interface HistoryData {
@@ -13,6 +14,7 @@ const HistoryPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [nicheFilter, setNicheFilter] = useState('');
+    const router = useRouter();
 
     // Updated history data based on the image
     const historyData: HistoryData[] = [
@@ -77,7 +79,7 @@ const HistoryPage = () => {
             const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === '' || item.status === statusFilter;
             const matchesNiche = nicheFilter === '' || item.niche === nicheFilter;
-            
+
             return matchesSearch && matchesStatus && matchesNiche;
         });
     }, [searchTerm, statusFilter, nicheFilter, historyData]);
@@ -96,6 +98,11 @@ const HistoryPage = () => {
                 return `${baseClasses} bg-gray-500/20 text-gray-400`;
         }
     };
+
+    // Handle preview action
+    const handlePreview = (id: number) => {
+        router.push(`/dashboard/history/preview`);
+    }
 
     return (
         <div className="w-full min-h-screen p-2 sm:p-4 lg:p-6">
@@ -209,8 +216,8 @@ const HistoryPage = () => {
                                 <tbody>
                                     {filteredData.length > 0 ? (
                                         filteredData.map((history, index) => (
-                                            <tr 
-                                                key={history.id} 
+                                            <tr
+                                                key={history.id}
                                                 className={` hover:bg-gray-700/30 transition-colors`}
                                             >
                                                 <td className="py-3 px-3 lg:px-6">
@@ -231,10 +238,10 @@ const HistoryPage = () => {
                                                 </td>
                                                 <td className="py-3 px-3 lg:px-6">
                                                     <div className="flex space-x-1 lg:space-x-2">
-                                                        <button className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors font-normal py-1.5 px-2 lg:py-2 lg:px-4 rounded-full text-xs lg:text-sm">
+                                                        <button className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors font-normal py-1.5 px-2 lg:py-2 lg:px-4 rounded-full text-xs lg:text-sm cursor-pointer" onClick={() => handlePreview(history.id)}>
                                                             View
                                                         </button>
-                                                        <button className="bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors font-normal py-1.5 px-2 lg:py-2 lg:px-4 rounded-full text-xs lg:text-sm">
+                                                        <button className="bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors font-normal py-1.5 px-2 lg:py-2 lg:px-4 rounded-full text-xs lg:text-sm cursor-pointer">
                                                             Delete
                                                         </button>
                                                     </div>
@@ -279,10 +286,10 @@ const HistoryPage = () => {
                                         </div>
                                     </div>
                                     <div className="flex space-x-2">
-                                        <button className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors font-normal py-2 px-4 rounded-full text-sm flex-1">
+                                        <button className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors font-normal py-2 px-4 rounded-full text-sm flex-1 cursor-pointer" onClick={() => handlePreview(history.id)}>
                                             View
                                         </button>
-                                        <button className="bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors font-normal py-2 px-4 rounded-full text-sm flex-1">
+                                        <button className="bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors font-normal py-2 px-4 rounded-full text-sm flex-1 cursor-pointer">
                                             Delete
                                         </button>
                                     </div>
