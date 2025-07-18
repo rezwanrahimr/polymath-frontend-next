@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         return 'Settings';
       case '/dashboard/history/preview':
         return <span className="flex items-center gap-2">
-         <span className='text-gray-400'>History</span> <ArrowRight size={22} /> Preview
+          <span className='text-gray-400'>History</span> <ArrowRight size={22} /> Preview
         </span>
       default:
         return 'Overview';
