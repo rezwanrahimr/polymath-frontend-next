@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef } from 'react';
-import { ChevronDown, Sparkles, FileText, RefreshCw, Plus, Copy, Download } from 'lucide-react';
+import { ChevronDown, Sparkles, FileText, RefreshCw, Plus, Copy, Download, PlusIcon } from 'lucide-react';
 
 const AIContentWriter = () => {
   const [activeTab, setActiveTab] = useState('Generate Content');
@@ -83,16 +83,16 @@ const AIContentWriter = () => {
     setIsGenerating(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 3000));
-    
+
     // Mock generated content
     setGeneratedContent(`This is a sample generated content based on your prompt: "${prompt.substring(0, 50)}..." 
 
     Generated with ${tone} tone and targeting ${wordCount} words. This would be replaced with actual AI-generated content in a real implementation.`);
-    
+
     setIsGenerating(false);
   };
 
-  const handleKeyPress = (e:any) => {
+  const handleKeyPress = (e: any) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       handleAction();
@@ -145,11 +145,10 @@ const AIContentWriter = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                    activeTab === tab.id
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${activeTab === tab.id
                       ? 'bg-gradient-to-r from-[#00FFFF] to-[#00E6E6] text-black shadow-lg shadow-cyan-500/25'
                       : 'text-gray-300 hover:text-white hover:bg-white/10 border border-white/20'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {tab.label}
@@ -163,10 +162,9 @@ const AIContentWriter = () => {
       {/* Main Content Area */}
       <div className="px-6 pb-8">
         <div className="max-w-4xl mx-auto">
-          <div className={`rounded-2xl bg-[#1a1f2e]/80 backdrop-blur-sm border transition-all duration-300 ${
-            isFocus ? 'border-[#00FFFF] shadow-[0_0_30px_rgba(0,255,255,0.3)]' : 'border-white/10'
-          }`}>
-            
+          <div className={`rounded-2xl bg-[#1a1f2e]/80 backdrop-blur-sm border transition-all duration-300 ${isFocus ? 'border-[#00FFFF] shadow-[0_0_30px_rgba(0,255,255,0.3)]' : 'border-white/10'
+            }`}>
+
             {/* Input Section */}
             <div className="p-6 md:p-8">
               <div className="mb-6">
@@ -182,9 +180,8 @@ const AIContentWriter = () => {
                     onFocus={() => setIsFocus(true)}
                     onBlur={() => setIsFocus(false)}
                     placeholder={getPlaceholderText()}
-                    className={`w-full h-40 p-4 text-white bg-[#0f1419] rounded-xl border transition-all duration-300 resize-none focus:outline-none placeholder-gray-500 ${
-                      isFocus ? 'border-[#00FFFF] shadow-[0_0_15px_rgba(0,255,255,0.2)]' : 'border-white/20'
-                    }`}
+                    className={`w-full h-40 p-4 text-white bg-[#0f1419] rounded-xl border transition-all duration-300 resize-none focus:outline-none placeholder-gray-500 ${isFocus ? 'border-[#00FFFF] shadow-[0_0_15px_rgba(0,255,255,0.2)]' : 'border-white/20'
+                      }`}
                     style={{ fontSize: '16px' }} // Prevents zoom on iOS
                   />
                   <div className="absolute bottom-4 right-4 text-xs text-gray-400">
@@ -244,29 +241,27 @@ const AIContentWriter = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-gray-400">
-                   
+
                   </span>
                 </div>
-                
+
                 <div className="flex gap-3">
                   {(activeTab === 'Analyses Content' || activeTab === 'Refine Content') && (
                     <button
                       onClick={() => setPrompt('')}
-                      className="flex items-center gap-2 px-4 py-3 bg-[#2a2f3e] text-white rounded-xl font-medium hover:bg-[#343a4a] transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                      className="flex items-center gap-2 px-4 py-3 bg-[#2a2f3e] color-[#00FFFF] rounded-xl font-medium hover:bg-[#343a4a] transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                     >
-                      <Plus className="w-4 h-4" />
-                      Clear
+                      <PlusIcon />
                     </button>
                   )}
-                  
+
                   <button
                     onClick={handleAction}
                     disabled={!prompt.trim() || isGenerating}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                      !prompt.trim() || isGenerating
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${!prompt.trim() || isGenerating
                         ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         : 'bg-gradient-to-r from-[#00FF7F] to-[#00E070] text-black hover:from-[#00E070] hover:to-[#00D060] hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,127,0.4)]'
-                    }`}
+                      }`}
                   >
                     {isGenerating ? (
                       <>

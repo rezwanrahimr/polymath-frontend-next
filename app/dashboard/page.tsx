@@ -2,11 +2,12 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Download } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Label } from "recharts"
 import IssueModal from "@/components/IssueModal"
 import { MetricCard } from "@/types"
 import DashboardMetrics from "@/components/DashboardMetrics"
+import { Download } from "lucide-react"
+import DownloadIcon from "@/components/icons/Download"
 
 const MainContent: React.FC = () => {
   const [url, setUrl] = useState("")
@@ -34,7 +35,7 @@ const MainContent: React.FC = () => {
   const handleAnalyze = () => {
     if (url.trim()) {
       console.log("Analyzing:", url)
-      // Add your analysis logic here
+      // analysis logic here
     }
   }
 
@@ -125,7 +126,6 @@ const MainContent: React.FC = () => {
   }
 
   // Metric Cards
-
   const metricData: MetricCard[] = [
     {
       title: 'Authority Score',
@@ -159,8 +159,8 @@ const MainContent: React.FC = () => {
       <h3 className="text-white text-lg font-medium mb-8">{title}</h3>
       <div className="space-y-4">
         {issues.map((item, index) => (
-          <div key={index} className="md:flex md:justify-between w-full border-b border-gray-600 pb-4"> {/* Ensure full width */}
-            <div className="flex items-center justify-between mb-3 w-full"> {/* Ensure full width */}
+          <div key={index} className="md:flex md:justify-between w-full border-b border-gray-600 pb-4">
+            <div className="flex items-center justify-between mb-3 w-full">
               <div className="flex items-center space-x-2">
                 <svg width="22" height="23" viewBox="0 0 22 23" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="11" cy="11.5" r="10" stroke="#C8081B" strokeWidth="1.5" />
@@ -173,7 +173,7 @@ const MainContent: React.FC = () => {
                 </span>
               </div>
             </div>
-            <div className="flex flex-wrap gap-6 w-full justify-end"> {/* Ensure full width and use flex wrap */}
+            <div className="flex flex-wrap gap-6 w-full justify-end">
               {item.issues.map((issue: any, issueIndex: number) => (
                 <button
                   key={issueIndex}
@@ -211,7 +211,7 @@ const MainContent: React.FC = () => {
     </div>
   )
 
-  // function for modal handling
+  // function for error section modal handling
   const handleOpenModal = (issueType: 'image' | 'content' | 'keyword') => {
     setCurrentIssue({ type: issueType, data: errorData });
     setIsModalOpen(true);
@@ -335,13 +335,9 @@ const MainContent: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
               <h3 className="text-[#00FFFF] text-xl md:text-2xl font-medium">Analysis Reports</h3>
-              <button className="flex items-center justify-center md:justify-start space-x-2 bg-white/5 hover:bg-[#2ea043] px-4 py-2 rounded-lg transition-colors">
+              <button className="flex items-center justify-center md:justify-start space-x-2 bg-white/5 hover:text-white px-4 py-2 rounded-lg transition-colors">
                 <span className="text-lg text-[#00FFFF]">Download</span>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 14.5L12 4.5M12 14.5C11.2998 14.5 9.99153 12.5057 9.5 12M12 14.5C12.7002 14.5 14.0085 12.5057 14.5 12" stroke="#00FFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M20 16.5C20 18.982 19.482 19.5 17 19.5H7C4.518 19.5 4 18.982 4 16.5" stroke="#00FFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-
+                <DownloadIcon />
               </button>
             </div>
 
@@ -373,7 +369,7 @@ const MainContent: React.FC = () => {
                   <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-6">
                     {/* SEO Score Circle */}
                     <div className="flex flex-col text-center justify-center md:justify-start">
-                      <div className="relative w-24 h-24 md:w-32 md:h-32">
+                      <div className="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-2">
                         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
                           <circle cx="60" cy="60" r="50" stroke="#374151" strokeWidth="10" fill="none" />
                           <circle
@@ -391,7 +387,7 @@ const MainContent: React.FC = () => {
                           <span className="text-2xl md:text-3xl font-bold text-white">83</span>
                         </div>
                       </div>
-                      <p className="text-xs md:text-lg text-white">SEO Score</p>
+                      <p className="text-medium md:text-lg text-white">SEO Score</p>
                     </div>
 
                     {/* Website Info */}
@@ -419,7 +415,7 @@ const MainContent: React.FC = () => {
                   {/* Site Health */}
                   <div className="bg-white/5 rounded-lg p-4 lg:p-6">
                     <h4 className="text-white text-lg font-medium mb-4">Site Health</h4>
-                    <div className="flex">
+                    <div className="flex flex-col md:flex-row">
                       <div className="mb-4">
                         <PieChart width={350} height={200}>
                           <Pie
@@ -452,7 +448,7 @@ const MainContent: React.FC = () => {
                           />
                         </PieChart>
                       </div>
-                      <div className="flex flex-col space-y-2">
+                      <div className="flex flex-row  md:flex-col justify-center items-center gap-4 space-y-2">
                         <div className="flex items-center justify-center space-x-2">
                           <div className="w-3 h-3 bg-[#00FF7F] rounded-full"></div>
                           <span className="text-sm text-gray-400">Health</span>

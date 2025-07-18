@@ -40,16 +40,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="relative h-[110px] bg-[#0D1117] ps-8 pe-12 py-4 flex items-center justify-between">
+    <header className="relative h-[110px] bg-[#0D1117] ps-4 md:ps-8 pe-4 md:pe-12 py-4 flex items-center justify-between">
       {/* Bottom border with left/right gap */}
-      <div className="absolute bottom-0 left-8 right-12 h-[2px] bg-white/24" />
+      <div className="absolute bottom-0 left-4 md:left-8 right-4 md:right-12 h-[2px] bg-white/24" />
 
       {/* Left: Page Title and Menu */}
       <div className="flex items-center space-x-3 z-10">
         <button onClick={onMenuClick} className="md:hidden text-white">
           <Menu size={28} />
         </button>
-        <h1 className="text-lg md:text-[32px] font-semibold text-white ">{getHeaderName()}</h1>
+        <h1 className="text-xl md:text-[32px] font-semibold text-white ">{getHeaderName()}</h1>
       </div>
 
       {/* Right: Profile Section */}
@@ -68,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="text-[#00FFFF] text-[24px] font-normal">Shivamo</span>
+            <span className="text-[#00FFFF] text-xl md:text-[24px] font-normal">Shivamo</span>
             <svg
               className={`w-4 h-4 text-gray-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''
                 }`}

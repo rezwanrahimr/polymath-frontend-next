@@ -90,7 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <Link href="/dashboard">   <Image src="/images/logo.png" alt="Polymath Logo" width={188} height={46} />
           </Link>
           {/* Close button for mobile */}
-          <button onClick={onClose} className="md:hidden text-white">
+          <button onClick={onClose} className="ms-4 md:ms-0 md:hidden text-white">
             <X size={24} />
           </button>
         </div>
