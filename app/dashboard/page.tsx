@@ -156,11 +156,11 @@ const MainContent: React.FC = () => {
 
   const renderIssueGroup = (title: string, issues: any[]) => (
     <div className="mb-8">
-      <h3 className="text-white text-lg font-medium mb-8">{title}</h3>
+      <h3 className="mb-8 text-lg font-medium text-white">{title}</h3>
       <div className="space-y-4">
         {issues.map((item, index) => (
-          <div key={index} className="md:flex md:justify-between w-full border-b border-gray-600 pb-4">
-            <div className="flex items-center justify-between mb-3 w-full">
+          <div key={index} className="w-full pb-4 border-b border-gray-600 md:flex md:justify-between">
+            <div className="flex items-center justify-between w-full mb-3">
               <div className="flex items-center space-x-2">
                 <svg width="22" height="23" viewBox="0 0 22 23" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="11" cy="11.5" r="10" stroke="#C8081B" strokeWidth="1.5" />
@@ -168,12 +168,12 @@ const MainContent: React.FC = () => {
                   <path d="M11 11.5L11 7.5" stroke="#C8081B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
 
-                <span className="text-white text-base underline cursor-pointer hover:text-blue-300">
+                <span className="text-base text-white underline cursor-pointer hover:text-blue-300">
                   {item.url}
                 </span>
               </div>
             </div>
-            <div className="flex flex-wrap gap-6 w-full justify-end">
+            <div className="flex flex-wrap justify-end w-full gap-6">
               {item.issues.map((issue: any, issueIndex: number) => (
                 <button
                   key={issueIndex}
@@ -197,13 +197,13 @@ const MainContent: React.FC = () => {
 
   const renderErrorContent = () => (
     <div className="p-4 md:p-6">
-      <div className="bg-white/5 rounded-lg p-8 mb-6">
+      <div className="p-8 mb-6 rounded-lg bg-white/5">
         {renderIssueGroup("Image Issues", errorData.imageIssues)}
       </div>
-      <div className="bg-white/5 rounded-lg p-8 mb-6">
+      <div className="p-8 mb-6 rounded-lg bg-white/5">
         {renderIssueGroup("Content Issues", errorData.contentIssues)}
       </div>
-      <div className="bg-white/5 rounded-lg p-8 mb-6">
+      <div className="p-8 mb-6 rounded-lg bg-white/5">
         {renderIssueGroup("Keyword Issues", errorData.keywordIssues)}
       </div>
 
@@ -242,7 +242,7 @@ const MainContent: React.FC = () => {
           <div className="flex items-center w-full mb-8 md:mb-12">
             <div className="relative flex-1">
               {/* Link icon (left side) */}
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
                     d="M11.1002 3.5C7.45057 3.50657 5.53942 3.59617 4.31806 4.81754C3 6.13559 3 8.25698 3 12.4997C3 16.7425 3 18.8639 4.31806 20.1819C5.63611 21.5 7.7575 21.5 12.0003 21.5C16.243 21.5 18.3644 21.5 19.6825 20.1819C20.9038 18.9606 20.9934 17.0494 21 13.3998"
@@ -300,7 +300,7 @@ const MainContent: React.FC = () => {
           </div>
 
           {/* Mobile Analyze Button */}
-          <div className="md:hidden mb-8">
+          <div className="mb-8 md:hidden">
             <button
               onClick={handleAnalyze}
               className="w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 h-[55px] text-black font-normal"
@@ -333,20 +333,20 @@ const MainContent: React.FC = () => {
           {/* Analysis Reports Section */}
           <div className="mb-8">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
               <h3 className="text-[#00FFFF] text-xl md:text-2xl font-medium">Analysis Reports</h3>
-              <button className="flex items-center justify-center md:justify-start space-x-2 bg-white/5 hover:text-white px-4 py-2 rounded-lg transition-colors">
+              <button className="flex items-center justify-center px-4 py-2 space-x-2 transition-colors rounded-lg md:justify-start bg-white/5 hover:text-white">
                 <span className="text-lg text-[#00FFFF]">Download</span>
                 <DownloadIcon />
               </button>
             </div>
 
-            <p className="text-gray-300 mb-6 text-sm md:text-base">
+            <p className="mb-6 text-sm text-gray-300 md:text-base">
               Clear, concise reports showing your website's SEO issues, performance metrics, and improvement tips.
             </p>
 
             {/* Tabs */}
-            <div className="flex space-x-4 md:space-x-8 mb-6 md:mb-8 border-b border-gray-700 overflow-x-auto">
+            <div className="flex mb-6 space-x-4 overflow-x-auto border-b border-gray-700 md:space-x-8 md:mb-8">
               <button
                 onClick={() => setActiveTab("overview")}
                 className={`pb-3 border-b-2 whitespace-nowrap ${activeTab === "overview" ? "border-[#00FFFF] text-[#00FFFF]" : "border-transparent text-gray-400 hover:text-white"}`}
@@ -365,11 +365,11 @@ const MainContent: React.FC = () => {
             {activeTab === "overview" ? (
               <div className="bg-[#161B22] rounded-lg p-4 md:p-6 mb-8">
                 {/* Website Analysis Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
-                  <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-6">
+                <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-6">
                     {/* SEO Score Circle */}
-                    <div className="flex flex-col text-center justify-center md:justify-start">
-                      <div className="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-2">
+                    <div className="flex flex-col justify-center text-center md:justify-start">
+                      <div className="relative w-24 h-24 mx-auto mb-2 md:w-32 md:h-32">
                         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
                           <circle cx="60" cy="60" r="50" stroke="#374151" strokeWidth="10" fill="none" />
                           <circle
@@ -384,17 +384,17 @@ const MainContent: React.FC = () => {
                           />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-2xl md:text-3xl font-bold text-white">83</span>
+                          <span className="text-2xl font-bold text-white md:text-3xl">83</span>
                         </div>
                       </div>
-                      <p className="text-medium md:text-lg text-white">SEO Score</p>
+                      <p className="text-white text-medium md:text-lg">SEO Score</p>
                     </div>
 
                     {/* Website Info */}
                     <div className="text-center md:text-left">
-                      <h4 className="text-xl md:text-2xl text-white font-medium mb-2">google.com</h4>
+                      <h4 className="mb-2 text-xl font-medium text-white md:text-2xl">google.com</h4>
                       <p className="text-[#00FFFF] text-base md:text-lg mb-2">Analysis Reports</p>
-                      <p className="text-gray-300 text-sm md:text-base leading-relaxed">
+                      <p className="text-sm leading-relaxed text-gray-300 md:text-base">
                         This is a mock meta description generated by AI for google.com
                       </p>
                     </div>
@@ -402,7 +402,7 @@ const MainContent: React.FC = () => {
 
                   {/* Analysis Date */}
                   <div className="text-center lg:text-right">
-                    <p className="text-gray-300 text-sm md:text-base">Analysis Date: 2025-06-28</p>
+                    <p className="text-sm text-gray-300 md:text-base">Analysis Date: 2025-06-28</p>
                   </div>
                 </div>
 
@@ -411,10 +411,10 @@ const MainContent: React.FC = () => {
 
 
                 {/* Bottom Section with Site Health and Chart */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                   {/* Site Health */}
-                  <div className="bg-white/5 rounded-lg p-4 lg:p-6">
-                    <h4 className="text-white text-lg font-medium mb-4">Site Health</h4>
+                  <div className="p-4 rounded-lg bg-white/5 lg:p-6">
+                    <h4 className="mb-4 text-lg font-medium text-white">Site Health</h4>
                     <div className="flex flex-col md:flex-row">
                       <div className="mb-4">
                         <PieChart width={350} height={200}>
@@ -448,7 +448,7 @@ const MainContent: React.FC = () => {
                           />
                         </PieChart>
                       </div>
-                      <div className="flex flex-row  md:flex-col justify-center items-center gap-4 space-y-2">
+                      <div className="flex flex-row items-center justify-center gap-4 space-y-2 md:flex-col">
                         <div className="flex items-center justify-center space-x-2">
                           <div className="w-3 h-3 bg-[#00FF7F] rounded-full"></div>
                           <span className="text-sm text-gray-400">Health</span>
@@ -462,7 +462,7 @@ const MainContent: React.FC = () => {
                   </div>
 
                   {/* Chart */}
-                  <div className="bg-white/5 rounded-lg p-4 lg:p-6 lg:col-span-2">
+                  <div className="p-4 rounded-lg bg-white/5 lg:p-6 lg:col-span-2">
                     <div className="h-60">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData}>

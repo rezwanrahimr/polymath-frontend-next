@@ -127,12 +127,12 @@ const AIContentWriter = () => {
     <div className="min-h-screen">
       {/* Header Section */}
       <div className="w-full px-6 py-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 text-center">
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#00FFFF] via-[#00E6E6] to-[#00CCCC] bg-clip-text text-transparent mb-4">
               {headerContent.title}
             </h1>
-            <p className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+            <p className="max-w-3xl mx-auto text-lg leading-relaxed text-gray-300 md:text-xl">
               {headerContent.description}
             </p>
           </div>
@@ -168,7 +168,7 @@ const AIContentWriter = () => {
             {/* Input Section */}
             <div className="p-6 md:p-8">
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-300 mb-3">
+                <label className="block mb-3 text-sm font-medium text-gray-300">
                   {activeTab === 'Generate Content' ? 'Content Brief' : 'Input Content'}
                 </label>
                 <div className="relative">
@@ -184,7 +184,7 @@ const AIContentWriter = () => {
                       }`}
                     style={{ fontSize: '16px' }} // Prevents zoom on iOS
                   />
-                  <div className="absolute bottom-4 right-4 text-xs text-gray-400">
+                  <div className="absolute text-xs text-gray-400 bottom-4 right-4">
                     {prompt.length} characters
                   </div>
                 </div>
@@ -192,10 +192,10 @@ const AIContentWriter = () => {
 
               {/* Settings Panel */}
               {activeTab === 'Generate Content' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-2">
                   {/* Tone Selection */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                    <label className="block mb-3 text-sm font-medium text-gray-300">
                       Tone & Style
                     </label>
                     <div className="relative">
@@ -210,13 +210,13 @@ const AIContentWriter = () => {
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                      <ChevronDown className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 pointer-events-none right-4 top-1/2" />
                     </div>
                   </div>
 
                   {/* Word Count */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                    <label className="block mb-3 text-sm font-medium text-gray-300">
                       Target Length
                     </label>
                     <div className="relative">
@@ -231,14 +231,14 @@ const AIContentWriter = () => {
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                      <ChevronDown className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 pointer-events-none right-4 top-1/2" />
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+              <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-gray-400">
 
@@ -265,7 +265,7 @@ const AIContentWriter = () => {
                   >
                     {isGenerating ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-black rounded-full border-t-transparent animate-spin"></div>
                         Processing...
                       </>
                     ) : (
@@ -281,7 +281,7 @@ const AIContentWriter = () => {
 
             {/* Generated Content Section */}
             {/* {generatedContent && (
-              <div className="border-t border-white/10 p-6 md:p-8">
+              <div className="p-6 border-t border-white/10 md:p-8">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-white">Generated Content</h3>
                   <div className="flex gap-2">
@@ -385,13 +385,13 @@ export default AIContentWriter;
 //           <h1 className="text-[32px] font-medium text-[#00FFFF] mb-4">
 //             {headerContent.title}
 //           </h1>
-//           <p className="text-white text-lg font-normal leading-relaxed">
+//           <p className="text-lg font-normal leading-relaxed text-white">
 //             {headerContent.description}
 //           </p>
 //         </div>
 
 //         {/* Navigation Tabs */}
-//         <div className="flex mb-8 px-16">
+//         <div className="flex px-16 mb-8">
 
 //           {tabs.map((tab) => (
 //             <button
@@ -409,7 +409,7 @@ export default AIContentWriter;
 //       </div>
 
 //       {/* Main Content Area */}
-//       <div className="flex-1 overflow-y-auto p-4 md:px-44 mt-0 md:mt-46 ">
+//       <div className="flex-1 p-4 mt-0 overflow-y-auto md:px-44 md:mt-46 ">
 //         <div className={`rounded-lg bg-[#1a1f2e] border-[1px] transition-all duration-300 ${isFocus ? 'border-[#00FFFF] shadow-[0_0_30px_rgba(0,255,255,0.5)]' : 'border-white/8'}`}>
 //           {/* Content based on active tab */}
 //           {activeTab === 'Generate Content' && (
@@ -421,13 +421,13 @@ export default AIContentWriter;
 //                 onFocus={() => setIsFocus(true)}
 //                 onBlur={() => setIsFocus(false)}
 //                 placeholder="Write a post about eco-friendly with your niche.."
-//                 className="w-full h-32 p-4 mb-6 text-white bg-transparent placeholder-gray-400 resize-none focus:outline-none transition-all duration-300"
+//                 className="w-full h-32 p-4 mb-6 text-white placeholder-gray-400 transition-all duration-300 bg-transparent resize-none focus:outline-none"
 //               />
 
 //               <div className="flex flex-col sm:flex-row  gap-4 border-[2px] border-white/8 rounded-lg p-4  h-12 sm:h-auto">
 //                 {/* Tone & Style Dropdown */}
 //                 <div className="flex-1 ">
-//                   <label className="block text-sm text-gray-300 mb-2">
+//                   <label className="block mb-2 text-sm text-gray-300">
 //                     Tone & Style
 //                   </label>
 //                   <div className="relative">
@@ -440,13 +440,13 @@ export default AIContentWriter;
 //                         <option key={t} value={t}>{t}</option>
 //                       ))}
 //                     </select>
-//                     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+//                     <ChevronDown className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 pointer-events-none right-3 top-1/2" />
 //                   </div>
 //                 </div>
 
 //                 {/* Word Count Dropdown */}
 //                 <div className="flex-1">
-//                   <label className="block text-sm text-gray-300 mb-2">
+//                   <label className="block mb-2 text-sm text-gray-300">
 //                     Word Count Target
 //                   </label>
 //                   <div className="relative">
@@ -459,7 +459,7 @@ export default AIContentWriter;
 //                         <option key={count} value={count}>{count} words</option>
 //                       ))}
 //                     </select>
-//                     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+//                     <ChevronDown className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 pointer-events-none right-3 top-1/2" />
 //                   </div>
 //                 </div>
 //                 <div className="flex items-end">
@@ -473,7 +473,7 @@ export default AIContentWriter;
 //                   >
 //                     {isGenerating ? (
 //                       <div className="flex items-center space-x-2">
-//                         <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+//                         <div className="w-4 h-4 border-2 border-black rounded-full border-t-transparent animate-spin"></div>
 //                         <span>Processing...</span>
 //                       </div>
 //                     ) : (
@@ -492,7 +492,7 @@ export default AIContentWriter;
 //                   onFocus={() => setIsGenerating(true)}
 //                   onBlur={() => setIsGenerating(false)}
 //                   placeholder="Write a post about eco-friendly with your niche.."
-//                   className="w-full h-32 p-4 mb-6 text-white bg-transparent placeholder-gray-400 resize-none focus:outline-none transition-all duration-300"
+//                   className="w-full h-32 p-4 mb-6 text-white placeholder-gray-400 transition-all duration-300 bg-transparent resize-none focus:outline-none"
 //                 />
 //               </div>
 //               {/* Action Buttons */}
@@ -514,7 +514,7 @@ export default AIContentWriter;
 //                   >
 //                     {isGenerating ? (
 //                       <div className="flex items-center space-x-2">
-//                         <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+//                         <div className="w-4 h-4 border-2 border-black rounded-full border-t-transparent animate-spin"></div>
 //                         <span>Processing...</span>
 //                       </div>
 //                     ) : (
