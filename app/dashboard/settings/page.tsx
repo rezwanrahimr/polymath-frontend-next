@@ -19,10 +19,10 @@ interface PasswordData {
 
 const SettingsPage: React.FC = () => {
   const [profileData, setProfileData] = useState<ProfileData>({
-    firstName: "Mr. Jhon",
-    lastName: "Don",
-    phone: "000 222 333 444",
-    email: "yourmail@mail.com"
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: ""
   })
 
   const [passwordData, setPasswordData] = useState<PasswordData>({
@@ -62,6 +62,7 @@ const SettingsPage: React.FC = () => {
   }
 
   const validatePasswords = () => {
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setSaveMessage("New passwords don't match")
       return false
@@ -74,6 +75,7 @@ const SettingsPage: React.FC = () => {
       setSaveMessage("Current password is required")
       return false
     }
+    
     return true
   }
 

@@ -81,8 +81,6 @@ const LoginPage: React.FC = () => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       router.push('/dashboard');
       console.log('Login successful:', formData);
-      // Handle successful login here
-      // router.push('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
     } finally {

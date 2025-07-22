@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { ArrowRight, Menu } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -12,9 +12,29 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const route = useRouter();
   const path = usePathname();
 
+  const profileRef = useRef<HTMLDivElement>(null);
+
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    if (isProfileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileOpen]);
 
   const getHeaderName = () => {
     switch (path) {
@@ -27,13 +47,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       case '/dashboard/settings':
         return 'Settings';
       case '/dashboard/history/preview':
-        return <span className="flex items-center gap-2">
-          <span className='text-gray-400'>History</span> <ArrowRight size={22} /> Preview
-        </span>
+        return (
+          <span className="flex items-center gap-2">
+            <span className="text-gray-400">History</span> <ArrowRight size={22} /> Preview
+          </span>
+        );
       default:
         return 'Overview';
     }
-  }
+  };
 
   const handleSignOut = () => {
     route.push('/login');
@@ -41,20 +63,17 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   return (
     <header className="relative h-[110px] bg-[#0D1117] ps-4 md:ps-8 pe-4 md:pe-12 py-4 flex items-center justify-between">
-      {/* Bottom border with left/right gap */}
       <div className="absolute bottom-0 left-4 md:left-8 right-4 md:right-12 h-[2px] bg-white/24" />
 
-      {/* Left: Page Title and Menu */}
       <div className="flex items-center space-x-3 z-10">
         <button onClick={onMenuClick} className="md:hidden text-white">
           <Menu size={28} />
         </button>
-        <h1 className="text-xl md:text-[32px] font-semibold text-white ">{getHeaderName()}</h1>
+        <h1 className="text-xl md:text-[32px] font-semibold text-white">{getHeaderName()}</h1>
       </div>
 
-      {/* Right: Profile Section */}
       <div className="flex items-center space-x-3 z-10">
-        <div className="relative">
+        <div className="relative" ref={profileRef}>
           <button
             onClick={toggleProfile}
             className="flex items-center space-x-2 focus:outline-none"
@@ -108,7 +127,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 </div>
               </div>
               <div className="px-5 pb-4">
-                <button className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors" onClick={() => handleSignOut()}>
+                <button
+                  className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                  onClick={handleSignOut}
+                >
                   Sign Out
                 </button>
               </div>
@@ -118,7 +140,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       </div>
     </header>
   );
-
 };
 
 export default Header;

@@ -1,13 +1,23 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Label } from "recharts"
-import IssueModal from "@/components/IssueModal"
-import { MetricCard } from "@/types"
-import DashboardMetrics from "@/components/DashboardMetrics"
-import DownloadIcon from "@/components/icons/Download"
-import useSWR from "swr"
+import type React from "react";
+import { useState, useEffect } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Label,
+} from "recharts";
+import IssueModal from "@/components/IssueModal";
+import { MetricCard } from "@/types";
+import DashboardMetrics from "@/components/DashboardMetrics";
+import DownloadIcon from "@/components/icons/Download";
+import useSWR from "swr";
 
 // Define types for our API response
 type ApiResponse = {
@@ -38,7 +48,7 @@ type ApiResponse = {
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error('Failed to fetch data');
+    throw new Error("Failed to fetch data");
   }
   return response.json();
 };
@@ -49,7 +59,7 @@ const MainContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentIssue, setCurrentIssue] = useState<{
-    type: 'image' | 'content' | 'keyword';
+    type: "image" | "content" | "keyword";
     data: any;
   } | null>(null);
 
@@ -57,12 +67,15 @@ const MainContent: React.FC = () => {
   const { data, error, isLoading } = useSWR(
     submittedUrl
       ? `https://pagespeedonline.googleapis.com/pagespeedonline/v5/runPagespeed` +
-      `?url=${encodeURIComponent(submittedUrl.startsWith('http') ? submittedUrl : 'https://' + submittedUrl)}` +
-      `&strategy=mobile&key=AIzaSyBGt_hIPlD_AcoO2X16KZs-0mBmZhn-z0s`
+          `?url=${encodeURIComponent(
+            submittedUrl.startsWith("http")
+              ? submittedUrl
+              : "https://" + submittedUrl
+          )}` +
+          `&strategy=mobile&key=AIzaSyBGt_hIPlD_AcoO2X16KZs-0mBmZhn-z0s`
       : null,
     fetcher
   );
-
 
   // Reset submitted URL if input is cleared
   useEffect(() => {
@@ -76,21 +89,21 @@ const MainContent: React.FC = () => {
       setSubmittedUrl(url.trim());
       setActiveTab("overview");
     }
-  }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleAnalyze();
     }
-  }
+  };
 
   // Prepare chart data from API response
   const getChartData = () => {
     if (!data) return [];
-    return data.trends.map(item => ({
+    return data.trends.map((item) => ({
       month: item.month.toUpperCase().slice(0, 3),
       health: item?.health,
-      issues: item.issues
+      issues: item.issues,
     }));
   };
 
@@ -98,8 +111,8 @@ const MainContent: React.FC = () => {
   const getPieChartData = () => {
     if (!data) return [];
     return [
-      { name: 'Health', value: data.healthData?.health, color: '#00ff00' },
-      { name: 'Issues', value: data.healthData?.issues, color: '#ff0000' },
+      { name: "Health", value: data.healthData?.health, color: "#00ff00" },
+      { name: "Issues", value: data.healthData?.issues, color: "#ff0000" },
     ];
   };
 
@@ -108,13 +121,40 @@ const MainContent: React.FC = () => {
       <h3 className="mb-8 text-lg font-medium text-white">{title}</h3>
       <div className="space-y-4">
         {issues.map((item, index) => (
-          <div key={index} className="w-full pb-4 border-b border-gray-600 md:flex md:justify-between">
+          <div
+            key={index}
+            className="w-full pb-4 border-b border-gray-600 md:flex md:justify-between"
+          >
             <div className="flex items-center justify-between w-full mb-3">
               <div className="flex items-center space-x-2">
-                <svg width="22" height="23" viewBox="0 0 22 23" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="11" cy="11.5" r="10" stroke="#C8081B" strokeWidth="1.5" />
-                  <path d="M10.992 14.5H11.001" stroke="#C8081B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M11 11.5L11 7.5" stroke="#C8081B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  width="22"
+                  height="23"
+                  viewBox="0 0 22 23"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="11"
+                    cy="11.5"
+                    r="10"
+                    stroke="#C8081B"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M10.992 14.5H11.001"
+                    stroke="#C8081B"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M11 11.5L11 7.5"
+                    stroke="#C8081B"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
 
                 <span className="text-base text-white underline cursor-pointer hover:text-blue-300">
@@ -127,14 +167,38 @@ const MainContent: React.FC = () => {
                 <button
                   key={issueIndex}
                   onClick={() => handleOpenModal(issue.typeCategory)}
-                  className={`px-3 py-1 rounded-xl text-normal font-normal ${issue.severity === "solution" ? "bg-green-300/10 text-[#00FF7F] border border-[#00FF7F] px-6" : issue.severity === "high" ? "bg-[#DC091E] text-white" : "bg-yellow-500 text-white"} }`
-                  }
+                  className={`px-3 py-1 rounded-xl text-normal font-normal ${
+                    issue.severity === "solution"
+                      ? "bg-green-300/10 text-[#00FF7F] border border-[#00FF7F] px-6"
+                      : issue.severity === "high"
+                      ? "bg-[#DC091E] text-white"
+                      : "bg-yellow-500 text-white"
+                  } }`}
                 >
-                  {issue?.solution === 'high' ? <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6.40016 1.5C3.96705 1.50438 2.69295 1.56411 1.87871 2.37836C1 3.25706 1 4.67132 1 7.49983C1 10.3283 0.999999 11.7426 1.8787 12.6213C2.75741 13.5 4.17166 13.5 7.00017 13.5C9.82868 13.5 11.2429 13.5 12.1216 12.6213C12.9359 11.8071 12.9956 10.533 13 8.09984" stroke="white" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M13.135 2.27696C13.38 2.03381 13.3815 1.63809 13.1384 1.39308C12.8952 1.14807 12.4995 1.14656 12.2545 1.38971L13.135 2.27696ZM8.55975 5.05637C8.31474 5.29952 8.31323 5.69524 8.55637 5.94025C8.79952 6.18526 9.19524 6.18677 9.44025 5.94363L8.55975 5.05637ZM12.3523 1.65138L12.2433 2.2668L12.2433 2.2668L12.3523 1.65138ZM9.66661 0.875C9.32143 0.87503 9.04164 1.15488 9.04167 1.50005C9.0417 1.84523 9.32154 2.12503 9.66672 2.125L9.66661 0.875ZM12.375 4.83333C12.375 5.17851 12.6548 5.45833 13 5.45833C13.3452 5.45833 13.625 5.17851 13.625 4.83333H12.375ZM12.8486 2.14783L13.4641 2.03895L13.4641 2.03895L12.8486 2.14783ZM12.6948 1.83333L12.2545 1.38971L8.55975 5.05637L9 5.5L9.44025 5.94363L13.135 2.27696L12.6948 1.83333ZM12.3523 1.65138L12.4613 1.03595C11.9842 0.951455 11.2714 0.913025 10.7095 0.894212C10.4219 0.88458 10.1619 0.879785 9.97393 0.877393C9.87982 0.876196 9.80351 0.875598 9.7505 0.875299C9.72398 0.87515 9.70328 0.875075 9.68907 0.875037C9.68197 0.875019 9.67649 0.875009 9.67272 0.875005C9.67083 0.875002 9.66937 0.875001 9.66835 0.875001C9.66784 0.875 9.66744 0.875 9.66715 0.875C9.667 0.875 9.66689 0.875 9.6668 0.875C9.66675 0.875 9.66671 0.875 9.66668 0.875C9.66664 0.875 9.66661 0.875 9.66667 1.5C9.66672 2.125 9.6667 2.125 9.66669 2.125C9.6667 2.125 9.66669 2.125 9.6667 2.125C9.66673 2.125 9.66677 2.125 9.66685 2.125C9.66701 2.125 9.66727 2.125 9.66764 2.125C9.66839 2.125 9.66957 2.125 9.67117 2.125C9.67437 2.12501 9.67927 2.12502 9.68578 2.12503C9.6988 2.12507 9.71825 2.12514 9.74345 2.12528C9.79385 2.12556 9.86719 2.12614 9.95802 2.12729C10.1399 2.12961 10.3909 2.13424 10.6677 2.14351C11.2348 2.1625 11.8648 2.19976 12.2433 2.2668L12.3523 1.65138ZM13 4.83333C13.625 4.83333 13.625 4.8333 13.625 4.83326C13.625 4.83324 13.625 4.83319 13.625 4.83315C13.625 4.83306 13.625 4.83294 13.625 4.8328C13.625 4.83251 13.625 4.83211 13.625 4.8316C13.625 4.83057 13.625 4.82912 13.625 4.82723C13.625 4.82346 13.625 4.81798 13.625 4.81088C13.6249 4.79667 13.6248 4.77597 13.6247 4.74946C13.6244 4.69645 13.6238 4.62015 13.6226 4.52605C13.6202 4.33805 13.6154 4.0781 13.6057 3.7905C13.5869 3.22872 13.5485 2.51597 13.4641 2.03895L12.8486 2.14783L12.2332 2.25671C12.3002 2.6353 12.3374 3.26531 12.3564 3.83238C12.3657 4.1092 12.3704 4.3602 12.3727 4.54204C12.3738 4.63287 12.3744 4.7062 12.3747 4.75661C12.3749 4.7818 12.3749 4.80125 12.375 4.81427C12.375 4.82078 12.375 4.82568 12.375 4.82889C12.375 4.83049 12.375 4.83167 12.375 4.83241C12.375 4.83279 12.375 4.83305 12.375 4.8332C12.375 4.83328 12.375 4.83333 12.375 4.83335C12.375 4.83336 12.375 4.83336 12.375 4.83336C12.375 4.83335 12.375 4.83333 13 4.83333ZM12.3523 1.65138L12.2433 2.2668C12.2489 2.26779 12.2499 2.26875 12.2479 2.26771C12.2459 2.26666 12.2425 2.26448 12.239 2.26095C12.2355 2.25742 12.2333 2.25407 12.2322 2.25205C12.2312 2.25004 12.2322 2.25111 12.2332 2.25671L12.8486 2.14783L13.4641 2.03895C13.3722 1.5197 12.9807 1.12794 12.4613 1.03595L12.3523 1.65138Z" fill="white" />
-                  </svg>
-                    : ''} {issue.type}
+                  {issue?.solution === "high" ? (
+                    <svg
+                      width="14"
+                      height="15"
+                      viewBox="0 0 14 15"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M6.40016 1.5C3.96705 1.50438 2.69295 1.56411 1.87871 2.37836C1 3.25706 1 4.67132 1 7.49983C1 10.3283 0.999999 11.7426 1.8787 12.6213C2.75741 13.5 4.17166 13.5 7.00017 13.5C9.82868 13.5 11.2429 13.5 12.1216 12.6213C12.9359 11.8071 12.9956 10.533 13 8.09984"
+                        stroke="white"
+                        stroke-width="1.25"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M13.135 2.27696C13.38 2.03381 13.3815 1.63809 13.1384 1.39308C12.8952 1.14807 12.4995 1.14656 12.2545 1.38971L13.135 2.27696ZM8.55975 5.05637C8.31474 5.29952 8.31323 5.69524 8.55637 5.94025C8.79952 6.18526 9.19524 6.18677 9.44025 5.94363L8.55975 5.05637ZM12.3523 1.65138L12.2433 2.2668L12.2433 2.2668L12.3523 1.65138ZM9.66661 0.875C9.32143 0.87503 9.04164 1.15488 9.04167 1.50005C9.0417 1.84523 9.32154 2.12503 9.66672 2.125L9.66661 0.875ZM12.375 4.83333C12.375 5.17851 12.6548 5.45833 13 5.45833C13.3452 5.45833 13.625 5.17851 13.625 4.83333H12.375ZM12.8486 2.14783L13.4641 2.03895L13.4641 2.03895L12.8486 2.14783ZM12.6948 1.83333L12.2545 1.38971L8.55975 5.05637L9 5.5L9.44025 5.94363L13.135 2.27696L12.6948 1.83333ZM12.3523 1.65138L12.4613 1.03595C11.9842 0.951455 11.2714 0.913025 10.7095 0.894212C10.4219 0.88458 10.1619 0.879785 9.97393 0.877393C9.87982 0.876196 9.80351 0.875598 9.7505 0.875299C9.72398 0.87515 9.70328 0.875075 9.68907 0.875037C9.68197 0.875019 9.67649 0.875009 9.67272 0.875005C9.67083 0.875002 9.66937 0.875001 9.66835 0.875001C9.66784 0.875 9.66744 0.875 9.66715 0.875C9.667 0.875 9.66689 0.875 9.6668 0.875C9.66675 0.875 9.66671 0.875 9.66668 0.875C9.66664 0.875 9.66661 0.875 9.66667 1.5C9.66672 2.125 9.6667 2.125 9.66669 2.125C9.6667 2.125 9.66669 2.125 9.6667 2.125C9.66673 2.125 9.66677 2.125 9.66685 2.125C9.66701 2.125 9.66727 2.125 9.66764 2.125C9.66839 2.125 9.66957 2.125 9.67117 2.125C9.67437 2.12501 9.67927 2.12502 9.68578 2.12503C9.6988 2.12507 9.71825 2.12514 9.74345 2.12528C9.79385 2.12556 9.86719 2.12614 9.95802 2.12729C10.1399 2.12961 10.3909 2.13424 10.6677 2.14351C11.2348 2.1625 11.8648 2.19976 12.2433 2.2668L12.3523 1.65138ZM13 4.83333C13.625 4.83333 13.625 4.8333 13.625 4.83326C13.625 4.83324 13.625 4.83319 13.625 4.83315C13.625 4.83306 13.625 4.83294 13.625 4.8328C13.625 4.83251 13.625 4.83211 13.625 4.8316C13.625 4.83057 13.625 4.82912 13.625 4.82723C13.625 4.82346 13.625 4.81798 13.625 4.81088C13.6249 4.79667 13.6248 4.77597 13.6247 4.74946C13.6244 4.69645 13.6238 4.62015 13.6226 4.52605C13.6202 4.33805 13.6154 4.0781 13.6057 3.7905C13.5869 3.22872 13.5485 2.51597 13.4641 2.03895L12.8486 2.14783L12.2332 2.25671C12.3002 2.6353 12.3374 3.26531 12.3564 3.83238C12.3657 4.1092 12.3704 4.3602 12.3727 4.54204C12.3738 4.63287 12.3744 4.7062 12.3747 4.75661C12.3749 4.7818 12.3749 4.80125 12.375 4.81427C12.375 4.82078 12.375 4.82568 12.375 4.82889C12.375 4.83049 12.375 4.83167 12.375 4.83241C12.375 4.83279 12.375 4.83305 12.375 4.8332C12.375 4.83328 12.375 4.83333 12.375 4.83335C12.375 4.83336 12.375 4.83336 12.375 4.83336C12.375 4.83335 12.375 4.83333 13 4.83333ZM12.3523 1.65138L12.2433 2.2668C12.2489 2.26779 12.2499 2.26875 12.2479 2.26771C12.2459 2.26666 12.2425 2.26448 12.239 2.26095C12.2355 2.25742 12.2333 2.25407 12.2322 2.25205C12.2312 2.25004 12.2322 2.25111 12.2332 2.25671L12.8486 2.14783L13.4641 2.03895C13.3722 1.5197 12.9807 1.12794 12.4613 1.03595L12.3523 1.65138Z"
+                        fill="white"
+                      />
+                    </svg>
+                  ) : (
+                    ""
+                  )}{" "}
+                  {issue.type}
                 </button>
               ))}
             </div>
@@ -148,15 +212,15 @@ const MainContent: React.FC = () => {
     if (!data) return null;
 
     const totalIssues =
-      data?.issues?.imageIssues?.length +
-      data?.issues?.contentIssues?.length;
-      data?.issues?.keywordIssues?.length;
+      data?.issues?.imageIssues?.length + data?.issues?.contentIssues?.length;
+    data?.issues?.keywordIssues?.length;
 
     return (
       <div className="p-4 md:p-6">
         <div className="p-8 mb-6 rounded-lg bg-white/5">
-          {data?.issues?.imageIssues ? renderIssueGroup("Image Issues", data?.issues?.imageIssues) : ''}
-          
+          {data?.issues?.imageIssues
+            ? renderIssueGroup("Image Issues", data?.issues?.imageIssues)
+            : ""}
         </div>
         <div className="p-8 mb-6 rounded-lg bg-white/5">
           {renderIssueGroup("Content Issues", data?.issues?.contentIssues)}
@@ -169,12 +233,12 @@ const MainContent: React.FC = () => {
   };
 
   // function for error section modal handling
-  const handleOpenModal = (issueType: 'image' | 'content' | 'keyword') => {
+  const handleOpenModal = (issueType: "image" | "content" | "keyword") => {
     if (!data) return;
 
     setCurrentIssue({
       type: issueType,
-      data: data.issues
+      data: data.issues,
     });
     setIsModalOpen(true);
   };
@@ -201,7 +265,9 @@ const MainContent: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0D1117]">
         <div className="p-6 text-center bg-[#161B22] rounded-lg">
-          <h3 className="mb-4 text-xl font-medium text-[#DC091E]">Analysis Failed</h3>
+          <h3 className="mb-4 text-xl font-medium text-[#DC091E]">
+            Analysis Failed
+          </h3>
           <p className="text-gray-300">{error.message}</p>
           <button
             onClick={() => setSubmittedUrl(null)}
@@ -225,8 +291,10 @@ const MainContent: React.FC = () => {
 
           {/* Description */}
           <p className="text-[#FFFFFF] text-base md:text-lg font-normal mb-6 md:mb-8 leading-relaxed">
-            Unlock your website's full potential with SEO Insights. Identify issues, get actionable recommendations, and
-            improve visibility across search engines to attract more visitors and grow your online presence.
+            Unlock your website's full potential with SEO Insights. Identify
+            issues, get actionable recommendations, and improve visibility
+            across search engines to attract more visitors and grow your online
+            presence.
           </p>
 
           {/* URL Input Section */}
@@ -234,7 +302,13 @@ const MainContent: React.FC = () => {
             <div className="relative flex-1">
               {/* Link icon (left side) */}
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  width="24"
+                  height="25"
+                  viewBox="0 0 24 25"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <path
                     d="M11.1002 3.5C7.45057 3.50657 5.53942 3.59617 4.31806 4.81754C3 6.13559 3 8.25698 3 12.4997C3 16.7425 3 18.8639 4.31806 20.1819C5.63611 21.5 7.7575 21.5 12.0003 21.5C16.243 21.5 18.3644 21.5 19.6825 20.1819C20.9038 18.9606 20.9934 17.0494 21 13.3998"
                     stroke="white"
@@ -263,11 +337,21 @@ const MainContent: React.FC = () => {
               <button
                 onClick={handleAnalyze}
                 disabled={!url.trim()}
-                className={`absolute inset-y-0 right-0 hidden md:flex items-center justify-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 m-2 w-[130px] h-[35px] text-black font-normal cursor-pointer ${!url.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
-                style={{ background: "linear-gradient(to right, #00FF7F, #00C260)" }}
+                className={`absolute inset-y-0 right-0 hidden md:flex items-center justify-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 m-2 w-[130px] h-[35px] text-black font-normal cursor-pointer ${
+                  !url.trim() ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                style={{
+                  background: "linear-gradient(to right, #00FF7F, #00C260)",
+                }}
               >
                 <span className="text-[20px]">Analyze</span>
-                <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  width="24"
+                  height="25"
+                  viewBox="0 0 24 25"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <path
                     d="M14.1666 14.6667L16.875 17.375"
                     stroke="#0D1117"
@@ -296,11 +380,21 @@ const MainContent: React.FC = () => {
             <button
               onClick={handleAnalyze}
               disabled={!url.trim()}
-              className={`w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 h-[55px] text-black font-normal ${!url.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              style={{ background: "linear-gradient(to right, #00FF7F, #00C260)" }}
+              className={`w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 h-[55px] text-black font-normal ${
+                !url.trim() ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              style={{
+                background: "linear-gradient(to right, #00FF7F, #00C260)",
+              }}
             >
               <span className="text-[20px]">Analyze</span>
-              <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                width="24"
+                height="25"
+                viewBox="0 0 24 25"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path
                   d="M14.1666 14.6667L16.875 17.375"
                   stroke="#0D1117"
@@ -328,7 +422,9 @@ const MainContent: React.FC = () => {
             <div className="mb-8">
               {/* Header */}
               <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
-                <h3 className="text-[#00FFFF] text-xl md:text-2xl font-medium">Analysis Reports</h3>
+                <h3 className="text-[#00FFFF] text-xl md:text-2xl font-medium">
+                  Analysis Reports
+                </h3>
                 <button className="flex items-center justify-center px-4 py-2 space-x-2 transition-colors rounded-lg md:justify-start bg-white/5 hover:text-white">
                   <span className="text-lg text-[#00FFFF]">Download</span>
                   <DownloadIcon />
@@ -336,22 +432,35 @@ const MainContent: React.FC = () => {
               </div>
 
               <p className="mb-6 text-sm text-gray-300 md:text-base">
-                Clear, concise reports showing your website's SEO issues, performance metrics, and improvement tips.
+                Clear, concise reports showing your website's SEO issues,
+                performance metrics, and improvement tips.
               </p>
 
               {/* Tabs */}
               <div className="flex mb-6 space-x-4 overflow-x-auto border-b border-gray-700 md:space-x-8 md:mb-8">
                 <button
                   onClick={() => setActiveTab("overview")}
-                  className={`pb-3 border-b-2 whitespace-nowrap ${activeTab === "overview" ? "border-[#00FFFF] text-[#00FFFF]" : "border-transparent text-gray-400 hover:text-white"}`}
+                  className={`pb-3 border-b-2 whitespace-nowrap ${
+                    activeTab === "overview"
+                      ? "border-[#00FFFF] text-[#00FFFF]"
+                      : "border-transparent text-gray-400 hover:text-white"
+                  }`}
                 >
                   Overview
                 </button>
                 <button
                   onClick={() => setActiveTab("error")}
-                  className={`pb-3 border-b-2 whitespace-nowrap ${activeTab === "error" ? "border-[#00FFFF] text-[#00FFFF]" : "border-transparent text-gray-400 hover:text-white"}`}
+                  className={`pb-3 border-b-2 whitespace-nowrap ${
+                    activeTab === "error"
+                      ? "border-[#00FFFF] text-[#00FFFF]"
+                      : "border-transparent text-gray-400 hover:text-white"
+                  }`}
                 >
-                  Error ({data?.issues?.imageIssues?.length + data?.issues?.contentIssues?.length + data?.issues?.keywordIssues?.length})
+                  Error (
+                  {data?.issues?.imageIssues?.length +
+                    data?.issues?.contentIssues?.length +
+                    data?.issues?.keywordIssues?.length}
+                  )
                 </button>
               </div>
 
@@ -364,8 +473,18 @@ const MainContent: React.FC = () => {
                       {/* SEO Score Circle */}
                       <div className="flex flex-col justify-center text-center md:justify-start">
                         <div className="relative w-24 h-24 mx-auto mb-2 md:w-32 md:h-32">
-                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-                            <circle cx="60" cy="60" r="50" stroke="#374151" strokeWidth="10" fill="none" />
+                          <svg
+                            className="w-full h-full transform -rotate-90"
+                            viewBox="0 0 120 120"
+                          >
+                            <circle
+                              cx="60"
+                              cy="60"
+                              r="50"
+                              stroke="#374151"
+                              strokeWidth="10"
+                              fill="none"
+                            />
                             <circle
                               cx="60"
                               cy="60"
@@ -373,21 +492,31 @@ const MainContent: React.FC = () => {
                               stroke="#00FF7F"
                               strokeWidth="10"
                               fill="none"
-                              strokeDasharray={`${data.seoScore * 3.14159} ${100 * 3.14159}`}
+                              strokeDasharray={`${data.seoScore * 3.14159} ${
+                                100 * 3.14159
+                              }`}
                               strokeLinecap="round"
                             />
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-2xl font-bold text-white md:text-3xl">{data.seoScore}</span>
+                            <span className="text-2xl font-bold text-white md:text-3xl">
+                              {data.seoScore}
+                            </span>
                           </div>
                         </div>
-                        <p className="text-white text-medium md:text-lg">SEO Score</p>
+                        <p className="text-white text-medium md:text-lg">
+                          SEO Score
+                        </p>
                       </div>
 
                       {/* Website Info */}
                       <div className="text-center md:text-left">
-                        <h4 className="mb-2 text-xl font-medium text-white md:text-2xl">{data?.websiteInfo?.domain}</h4>
-                        <p className="text-[#00FFFF] text-base md:text-lg mb-2">Analysis Reports</p>
+                        <h4 className="mb-2 text-xl font-medium text-white md:text-2xl">
+                          {data?.websiteInfo?.domain}
+                        </h4>
+                        <p className="text-[#00FFFF] text-base md:text-lg mb-2">
+                          Analysis Reports
+                        </p>
                         <p className="text-sm leading-relaxed text-gray-300 md:text-base">
                           {data?.websiteInfo?.metaDescription}
                         </p>
@@ -396,7 +525,9 @@ const MainContent: React.FC = () => {
 
                     {/* Analysis Date */}
                     <div className="text-center lg:text-right">
-                      <p className="text-sm text-gray-300 md:text-base">Analysis Date: {data?.websiteInfo?.analysisDate}</p>
+                      <p className="text-sm text-gray-300 md:text-base">
+                        Analysis Date: {data?.websiteInfo?.analysisDate}
+                      </p>
                     </div>
                   </div>
 
@@ -407,7 +538,9 @@ const MainContent: React.FC = () => {
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     {/* Site Health */}
                     <div className="p-4 rounded-lg bg-white/5 lg:p-6">
-                      <h4 className="mb-4 text-lg font-medium text-white">Site Health</h4>
+                      <h4 className="mb-4 text-lg font-medium text-white">
+                        Site Health
+                      </h4>
                       <div className="flex flex-col md:flex-row">
                         <div className="mb-4">
                           <PieChart width={350} height={200}>
@@ -424,7 +557,10 @@ const MainContent: React.FC = () => {
                               stroke="none"
                             >
                               {getPieChartData().map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={entry.color}
+                                />
                               ))}
                             </Pie>
                             <Label
@@ -443,11 +579,15 @@ const MainContent: React.FC = () => {
                         <div className="flex flex-row items-center justify-center gap-4 space-y-2 md:flex-col">
                           <div className="flex items-center justify-center space-x-2">
                             <div className="w-3 h-3 bg-[#00FF7F] rounded-full"></div>
-                            <span className="text-sm text-gray-400">Health</span>
+                            <span className="text-sm text-gray-400">
+                              Health
+                            </span>
                           </div>
                           <div className="flex items-center justify-center space-x-2">
                             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                            <span className="text-sm text-gray-400">Issues</span>
+                            <span className="text-sm text-gray-400">
+                              Issues
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -470,8 +610,20 @@ const MainContent: React.FC = () => {
                               tickLine={false}
                               tick={{ fill: "#9CA3AF", fontSize: 12 }}
                             />
-                            <Line type="monotone" dataKey="health" stroke="#00FF7F" strokeWidth={2} dot={false} />
-                            <Line type="monotone" dataKey="issues" stroke="#EF4444" strokeWidth={2} dot={false} />
+                            <Line
+                              type="monotone"
+                              dataKey="health"
+                              stroke="#00FF7F"
+                              strokeWidth={2}
+                              dot={false}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="issues"
+                              stroke="#EF4444"
+                              strokeWidth={2}
+                              dot={false}
+                            />
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
@@ -495,12 +647,11 @@ const MainContent: React.FC = () => {
       )}
     </div>
   );
-}
+};
 
 export default MainContent;
 
-
-//backup file here 
+//backup file here
 // "use client"
 
 // import type React from "react"
@@ -520,8 +671,6 @@ export default MainContent;
 //     type: 'image' | 'content' | 'keyword';
 //     data: any;
 //   } | null>(null);
-
-
 
 //   const chartData = [
 //     { month: "JAN", health: 75, issues: 5 },
@@ -711,7 +860,6 @@ export default MainContent;
 //         {renderIssueGroup("Keyword Issues", errorData.keywordIssues)}
 //       </div>
 
-
 //     </div>
 //   )
 
@@ -725,7 +873,6 @@ export default MainContent;
 //     setIsModalOpen(false);
 //     setCurrentIssue(null);
 //   };
-
 
 //   return (
 //     <div className="min-h-screen bg-[#0D1117] text-white">
@@ -912,7 +1059,6 @@ export default MainContent;
 
 //                 {/* Metrics Grid */}
 //                 <DashboardMetrics metrics={metricData} />
-
 
 //                 {/* Bottom Section with Site Health and Chart */}
 //                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
