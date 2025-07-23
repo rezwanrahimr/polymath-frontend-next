@@ -78,9 +78,23 @@ const LoginPage: React.FC = () => {
 
     // API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const api = process.env.NEXT_PUBLIC_API_URL;
+      console.log('API URL:', api);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analyze/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+      const data = await response.json();
       router.push('/dashboard');
       console.log('Login successful:', formData);
+
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
@@ -131,9 +145,8 @@ const LoginPage: React.FC = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="yourmail@mailhere"
-                className={`w-full h-[56px] px-4 py-3 bg-[#0D1117] text-[#FFFFFF] rounded-lg border ${
-                  errors.email ? 'border-red-500' : 'border-gray-600'
-                } focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:border-transparent placeholder-gray-400 transition-colors`}
+                className={`w-full h-[56px] px-4 py-3 bg-[#0D1117] text-[#FFFFFF] rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-600'
+                  } focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:border-transparent placeholder-gray-400 transition-colors`}
               />
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
@@ -151,9 +164,8 @@ const LoginPage: React.FC = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="••••••••••••••"
-                  className={`w-full h-[56px] px-4 py-3 pr-12 bg-[#0D1117] text-[#FFFFFF] rounded-lg border ${
-                    errors.password ? 'border-red-500' : 'border-gray-600'
-                  } focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:border-transparent placeholder-gray-400 transition-colors`}
+                  className={`w-full h-[56px] px-4 py-3 pr-12 bg-[#0D1117] text-[#FFFFFF] rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-600'
+                    } focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:border-transparent placeholder-gray-400 transition-colors`}
                 />
                 <button
                   type="button"
