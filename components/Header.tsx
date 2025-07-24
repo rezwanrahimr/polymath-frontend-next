@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { ArrowRight, Menu } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+import Cookies from 'js-cookie';
+
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -58,6 +61,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   const handleSignOut = () => {
+    Cookies.remove('auth_token');
+    toast.success('You have been signed out successfully.');
     route.push('/login');
   };
 

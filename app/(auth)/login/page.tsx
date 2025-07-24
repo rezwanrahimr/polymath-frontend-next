@@ -5,6 +5,9 @@ import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import Logo from '../../../public/images/logo.png';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import Cookies from 'js-cookie';
 
 interface FormData {
   email: string;
@@ -39,9 +42,11 @@ const LoginPage: React.FC = () => {
 
     if (!formData.email) {
       newErrors.email = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
     }
+
+    // else if (!validateEmail(formData.email)) {
+    //   newErrors.email = 'Please enter a valid email address';
+    // }
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -76,30 +81,45 @@ const LoginPage: React.FC = () => {
 
     setIsLoading(true);
 
+    const formatApiData = {
+      username: formData.email,
+      password: formData.password,
+    }
+
     // API call
     try {
-      const api = process.env.NEXT_PUBLIC_API_URL;
-      console.log('API URL:', api);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analyze/login`, {
-        method: 'POST',
+      const api = `${process.env.NEXT_PUBLIC_API_URL}/analyze/login`;
+      const { data } = await axios.post(api, formatApiData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-      const data = await response.json();
-      router.push('/dashboard');
-      console.log('Login successful:', formData);
+      if (data?.state) {
+        // Store token in cookies
+        Cookies.set('auth_token', data?.token, {
+          expires: 7,
+          secure: true,
+          sameSite: 'strict',
+        })
 
-    } catch (error) {
-      console.error('Login failed:', error);
+        // Redirect to dashboard
+        router.push('/dashboard');
+        toast.success(data?.message || 'Login successful!');
+      } else {
+        toast.error(data?.message || 'Login failed. Please try again.');
+      }
+
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || 'An error occurred. Please try again.');
+      } else {
+        toast.error('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
+
   };
 
   const togglePasswordVisibility = () => {
@@ -139,7 +159,7 @@ const LoginPage: React.FC = () => {
                 Enter mail
               </label>
               <input
-                type="email"
+                type="text"
                 id="email"
                 name="email"
                 value={formData.email}
