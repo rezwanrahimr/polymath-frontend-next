@@ -21,11 +21,18 @@ const AIContentWriter = () => {
   const [wordCount, setWordCount] = useState("500");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isFocus, setIsFocus] = useState(false);
-  const [conversations, setConversations] = useState([]);
+  type ConversationMessage = {
+    id: number;
+    type: "user" | "ai";
+    content: string;
+    timestamp: string;
+    isTyping?: boolean;
+  };
+  const [conversations, setConversations] = useState<ConversationMessage[]>([]);
   const [currentResponse, setCurrentResponse] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const textareaRef = useRef(null);
-  const conversationEndRef = useRef(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const conversationEndRef = useRef<HTMLDivElement | null>(null);
 
   const tabs = [
     { id: "Generate Content", icon: Sparkles, label: "Generate Content" },
@@ -55,7 +62,7 @@ const AIContentWriter = () => {
   ];
 
   // Demo data based on tab type
-  const getDemoResponse = (tabType, prompt, tone, wordCount) => {
+  const getDemoResponse = (tabType: string, prompt: string, tone: string, wordCount: string) => {
     const responses = {
       "Generate Content": [
         `# The Rise of Sustainable Living: A Comprehensive Guide
@@ -517,11 +524,11 @@ This refined approach positions your content for maximum impact while maintainin
       ],
     };
 
-    const tabResponses = responses[tabType] || responses["Generate Content"];
+    const tabResponses = responses[tabType as keyof typeof responses] || responses["Generate Content"];
     return tabResponses[Math.floor(Math.random() * tabResponses.length)];
   };
 
-  const typeWriter = (text, callback) => {
+  const typeWriter = (text: string, callback: () => void) => {
     setIsTyping(true);
     setCurrentResponse("");
     let index = 0;
@@ -577,7 +584,7 @@ This refined approach positions your content for maximum impact while maintainin
     if (!prompt.trim()) return;
 
     // Add user message to conversation
-    const userMessage = {
+    const userMessage: ConversationMessage = {
       id: Date.now(),
       type: "user",
       content: prompt,
@@ -594,7 +601,7 @@ This refined approach positions your content for maximum impact while maintainin
     const responseText = getDemoResponse(activeTab, prompt, tone, wordCount);
 
     // Add AI response with typing effect
-    const aiMessage = {
+    const aiMessage: ConversationMessage = {
       id: Date.now() + 1,
       type: "ai",
       content: "",
@@ -621,7 +628,9 @@ This refined approach positions your content for maximum impact while maintainin
     setPrompt("");
   };
 
-  const handleKeyPress = (e) => {
+  interface KeyPressEvent extends React.KeyboardEvent<HTMLTextAreaElement> {}
+
+  const handleKeyPress = (e: KeyPressEvent) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       handleAction();

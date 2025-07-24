@@ -100,7 +100,7 @@ const MainContent: React.FC = () => {
   // Prepare chart data from API response
   const getChartData = () => {
     if (!data) return [];
-    return data.trends.map((item) => ({
+    return data.trends.map((item: { month: string; health: number; issues: number }) => ({
       month: item.month.toUpperCase().slice(0, 3),
       health: item?.health,
       issues: item.issues,
