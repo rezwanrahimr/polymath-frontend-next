@@ -19,30 +19,6 @@ import DashboardMetrics from "@/components/DashboardMetrics";
 import DownloadIcon from "@/components/icons/Download";
 import useSWR from "swr";
 
-// Define types for our API response
-type ApiResponse = {
-  seoScore: number;
-  metrics: MetricCard[];
-  healthData: {
-    health: number;
-    issues: number;
-  };
-  trends: {
-    month: string;
-    health: number;
-    issues: number;
-  }[];
-  issues: {
-    imageIssues: any[];
-    contentIssues: any[];
-    keywordIssues: any[];
-  };
-  websiteInfo: {
-    domain: string;
-    analysisDate: string;
-    metaDescription: string;
-  };
-};
 
 // Fetcher function for SWR
 const fetcher = async (url: string) => {
@@ -60,22 +36,30 @@ const MainContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentIssue, setCurrentIssue] = useState<{
     type: "image" | "content" | "keyword";
-    data: any;
+    data: {
+      imageIssues?: any[];
+      contentIssues?: any[];
+      keywordIssues?: any[];
+    };
   } | null>(null);
 
   // API call using SWR
   const { data, error, isLoading } = useSWR(
     submittedUrl
-      ? `https://pagespeedonline.googleapis.com/pagespeedonline/v5/runPagespeed` +
-          `?url=${encodeURIComponent(
-            submittedUrl.startsWith("http")
-              ? submittedUrl
-              : "https://" + submittedUrl
-          )}` +
-          `&strategy=mobile&key=AIzaSyBGt_hIPlD_AcoO2X16KZs-0mBmZhn-z0s`
+      ? `${process.env.NEXT_PUBLIC_API_URL}/analyze/website?url=${encodeURIComponent(submittedUrl)}`
       : null,
     fetcher
   );
+
+  const { data: errorData, error: seoError, isLoading: isErrorLoading } = useSWR(
+    submittedUrl
+      ? `${process.env.NEXT_PUBLIC_API_URL}/seo-analyzer/analyze?url=${encodeURIComponent(submittedUrl)}`
+      : null,
+    fetcher
+  );
+
+  console.log("errorData:", errorData);
+
 
   // Reset submitted URL if input is cleared
   useEffect(() => {
@@ -100,7 +84,7 @@ const MainContent: React.FC = () => {
   // Prepare chart data from API response
   const getChartData = () => {
     if (!data) return [];
-    return data.trends.map((item: { month: string; health: number; issues: number }) => ({
+    return data?.trends?.map((item: { month: string; health: number; issues: number }) => ({
       month: item.month.toUpperCase().slice(0, 3),
       health: item?.health,
       issues: item.issues,
@@ -111,8 +95,8 @@ const MainContent: React.FC = () => {
   const getPieChartData = () => {
     if (!data) return [];
     return [
-      { name: "Health", value: data.healthData?.health, color: "#00ff00" },
-      { name: "Issues", value: data.healthData?.issues, color: "#ff0000" },
+      { name: "Health", value: data.siteHealth, color: "#00ff00" },
+      { name: "Issues", value: 100 - data.siteHealth || 0, color: "#ff0000" },
     ];
   };
 
@@ -120,7 +104,7 @@ const MainContent: React.FC = () => {
     <div className="mb-8">
       <h3 className="mb-8 text-lg font-medium text-white">{title}</h3>
       <div className="space-y-4">
-        {issues.map((item, index) => (
+        {issues?.map((item, index) => (
           <div
             key={index}
             className="w-full pb-4 border-b border-gray-600 md:flex md:justify-between"
@@ -158,22 +142,21 @@ const MainContent: React.FC = () => {
                 </svg>
 
                 <span className="text-base text-white underline cursor-pointer hover:text-blue-300">
-                  {item.url}
+                  {item}
                 </span>
               </div>
             </div>
             <div className="flex flex-wrap justify-end w-full gap-6">
-              {item.issues.map((issue: any, issueIndex: number) => (
+              {item?.issues?.map((issue: any, issueIndex: number) => (
                 <button
                   key={issueIndex}
                   onClick={() => handleOpenModal(issue.typeCategory)}
-                  className={`px-3 py-1 rounded-xl text-normal font-normal ${
-                    issue.severity === "solution"
-                      ? "bg-green-300/10 text-[#00FF7F] border border-[#00FF7F] px-6"
-                      : issue.severity === "high"
+                  className={`px-3 py-1 rounded-xl text-normal font-normal ${issue.severity === "solution"
+                    ? "bg-green-300/10 text-[#00FF7F] border border-[#00FF7F] px-6"
+                    : issue.severity === "high"
                       ? "bg-[#DC091E] text-white"
                       : "bg-yellow-500 text-white"
-                  } }`}
+                    } }`}
                 >
                   {issue?.solution === "high" ? (
                     <svg
@@ -208,25 +191,27 @@ const MainContent: React.FC = () => {
     </div>
   );
 
-  const renderErrorContent = () => {
-    if (!data) return null;
+  const totalIssues =
+    errorData?.brokenLinks?.length + errorData?.oversizedImages?.length;
+  errorData?.blurryImages?.length;
 
-    const totalIssues =
-      data?.issues?.imageIssues?.length + data?.issues?.contentIssues?.length;
-    data?.issues?.keywordIssues?.length;
+  const renderErrorContent = () => {
+    if (!errorData) return null;
+
+
 
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-4 md:p-6 max-w-full">
         <div className="p-8 mb-6 rounded-lg bg-white/5">
-          {data?.issues?.imageIssues
-            ? renderIssueGroup("Image Issues", data?.issues?.imageIssues)
+          {errorData?.brokenLinks
+            ? renderIssueGroup("Broken Links", errorData?.brokenLinks)
             : ""}
         </div>
         <div className="p-8 mb-6 rounded-lg bg-white/5">
-          {renderIssueGroup("Content Issues", data?.issues?.contentIssues)}
+          {renderIssueGroup("OversizedImages", errorData?.oversizedImages)}
         </div>
         <div className="p-8 mb-6 rounded-lg bg-white/5">
-          {renderIssueGroup("Keyword Issues", data?.issues?.keywordIssues)}
+          {renderIssueGroup("Blurry Images", errorData?.blurryImages)}
         </div>
       </div>
     );
@@ -337,9 +322,8 @@ const MainContent: React.FC = () => {
               <button
                 onClick={handleAnalyze}
                 disabled={!url.trim()}
-                className={`absolute inset-y-0 right-0 hidden md:flex items-center justify-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 m-2 w-[130px] h-[35px] text-black font-normal cursor-pointer ${
-                  !url.trim() ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`absolute inset-y-0 right-0 hidden md:flex items-center justify-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 m-2 w-[130px] h-[35px] text-black font-normal cursor-pointer ${!url.trim() ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 style={{
                   background: "linear-gradient(to right, #00FF7F, #00C260)",
                 }}
@@ -380,9 +364,8 @@ const MainContent: React.FC = () => {
             <button
               onClick={handleAnalyze}
               disabled={!url.trim()}
-              className={`w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 h-[55px] text-black font-normal ${
-                !url.trim() ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 h-[55px] text-black font-normal ${!url.trim() ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               style={{
                 background: "linear-gradient(to right, #00FF7F, #00C260)",
               }}
@@ -418,231 +401,226 @@ const MainContent: React.FC = () => {
           </div>
 
           {/* Show Analysis Reports only when we have data */}
-          {data && (
-            <div className="mb-8">
-              {/* Header */}
-              <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
-                <h3 className="text-[#00FFFF] text-xl md:text-2xl font-medium">
-                  Analysis Reports
-                </h3>
-                <button className="flex items-center justify-center px-4 py-2 space-x-2 transition-colors rounded-lg md:justify-start bg-white/5 hover:text-white">
-                  <span className="text-lg text-[#00FFFF]">Download</span>
-                  <DownloadIcon />
-                </button>
-              </div>
+          {/* {data && ( */}
+          <div className="mb-8">
+            {/* Header */}
+            <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
+              <h3 className="text-[#00FFFF] text-xl md:text-2xl font-medium">
+                Analysis Reports
+              </h3>
+              <button className="flex items-center justify-center px-4 py-2 space-x-2 transition-colors rounded-lg md:justify-start bg-white/5 hover:text-white">
+                <span className="text-lg text-[#00FFFF]">Download</span>
+                <DownloadIcon />
+              </button>
+            </div>
 
-              <p className="mb-6 text-sm text-gray-300 md:text-base">
-                Clear, concise reports showing your website's SEO issues,
-                performance metrics, and improvement tips.
-              </p>
+            <p className="mb-6 text-sm text-gray-300 md:text-base">
+              Clear, concise reports showing your website's SEO issues,
+              performance metrics, and improvement tips.
+            </p>
 
-              {/* Tabs */}
-              <div className="flex mb-6 space-x-4 overflow-x-auto border-b border-gray-700 md:space-x-8 md:mb-8">
-                <button
-                  onClick={() => setActiveTab("overview")}
-                  className={`pb-3 border-b-2 whitespace-nowrap ${
-                    activeTab === "overview"
-                      ? "border-[#00FFFF] text-[#00FFFF]"
-                      : "border-transparent text-gray-400 hover:text-white"
+            {/* Tabs */}
+            <div className="flex mb-6 space-x-4 overflow-x-auto border-b border-gray-700 md:space-x-8 md:mb-8">
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`pb-3 border-b-2 whitespace-nowrap ${activeTab === "overview"
+                  ? "border-[#00FFFF] text-[#00FFFF]"
+                  : "border-transparent text-gray-400 hover:text-white"
                   }`}
-                >
-                  Overview
-                </button>
-                <button
-                  onClick={() => setActiveTab("error")}
-                  className={`pb-3 border-b-2 whitespace-nowrap ${
-                    activeTab === "error"
-                      ? "border-[#00FFFF] text-[#00FFFF]"
-                      : "border-transparent text-gray-400 hover:text-white"
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab("error")}
+                className={`pb-3 border-b-2 whitespace-nowrap ${activeTab === "error"
+                  ? "border-[#00FFFF] text-[#00FFFF]"
+                  : "border-transparent text-gray-400 hover:text-white"
                   }`}
-                >
-                  Error (
-                  {data?.issues?.imageIssues?.length +
-                    data?.issues?.contentIssues?.length +
-                    data?.issues?.keywordIssues?.length}
-                  )
-                </button>
-              </div>
+              >
+                Error (
+                {totalIssues}
+                )
+              </button>
+            </div>
 
-              {/* Content based on active tab */}
-              {activeTab === "overview" ? (
-                <div className="bg-[#161B22] rounded-lg p-4 md:p-6 mb-8">
-                  {/* Website Analysis Header */}
-                  <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-6">
-                      {/* SEO Score Circle */}
-                      <div className="flex flex-col justify-center text-center md:justify-start">
-                        <div className="relative w-24 h-24 mx-auto mb-2 md:w-32 md:h-32">
-                          <svg
-                            className="w-full h-full transform -rotate-90"
-                            viewBox="0 0 120 120"
-                          >
-                            <circle
-                              cx="60"
-                              cy="60"
-                              r="50"
-                              stroke="#374151"
-                              strokeWidth="10"
-                              fill="none"
-                            />
-                            <circle
-                              cx="60"
-                              cy="60"
-                              r="50"
-                              stroke="#00FF7F"
-                              strokeWidth="10"
-                              fill="none"
-                              strokeDasharray={`${data.seoScore * 3.14159} ${
-                                100 * 3.14159
+            {/* Content based on active tab */}
+            {activeTab === "overview" ? (
+              <div className="bg-[#161B22] rounded-lg p-4 md:p-6 mb-8">
+                {/* Website Analysis Header */}
+                <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-6">
+                    {/* SEO Score Circle */}
+                    <div className="flex flex-col justify-center text-center md:justify-start">
+                      <div className="relative w-24 h-24 mx-auto mb-2 md:w-32 md:h-32">
+                        <svg
+                          className="w-full h-full transform -rotate-90"
+                          viewBox="0 0 120 120"
+                        >
+                          <circle
+                            cx="60"
+                            cy="60"
+                            r="50"
+                            stroke="#374151"
+                            strokeWidth="10"
+                            fill="none"
+                          />
+                          <circle
+                            cx="60"
+                            cy="60"
+                            r="50"
+                            stroke="#00FF7F"
+                            strokeWidth="10"
+                            fill="none"
+                            strokeDasharray={`${data?.seoScore * 3.14159} ${100 * 3.14159
                               }`}
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-2xl font-bold text-white md:text-3xl">
-                              {data.seoScore}
-                            </span>
-                          </div>
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-2xl font-bold text-white md:text-3xl">
+                            {data?.seoScore}
+                          </span>
                         </div>
-                        <p className="text-white text-medium md:text-lg">
-                          SEO Score
-                        </p>
                       </div>
-
-                      {/* Website Info */}
-                      <div className="text-center md:text-left">
-                        <h4 className="mb-2 text-xl font-medium text-white md:text-2xl">
-                          {data?.websiteInfo?.domain}
-                        </h4>
-                        <p className="text-[#00FFFF] text-base md:text-lg mb-2">
-                          Analysis Reports
-                        </p>
-                        <p className="text-sm leading-relaxed text-gray-300 md:text-base">
-                          {data?.websiteInfo?.metaDescription}
-                        </p>
-                      </div>
+                      <p className="text-white text-medium md:text-lg">
+                        SEO Score
+                      </p>
                     </div>
 
-                    {/* Analysis Date */}
-                    <div className="text-center lg:text-right">
-                      <p className="text-sm text-gray-300 md:text-base">
-                        Analysis Date: {data?.websiteInfo?.analysisDate}
+                    {/* Website Info */}
+                    <div className="text-center md:text-left">
+                      <h4 className="mb-2 text-xl font-medium text-white md:text-2xl">
+                        {data?.url}
+                      </h4>
+                      <p className="text-[#00FFFF] text-base md:text-lg mb-2">
+                        Analysis Reports
+                      </p>
+                      <p className="text-sm leading-relaxed text-gray-300 md:text-base">
+                        {data?.metaDescription}
                       </p>
                     </div>
                   </div>
 
-                  {/* Metrics Grid */}
-                  <DashboardMetrics metrics={data.metrics} />
+                  {/* Analysis Date */}
+                  <div className="text-center lg:text-right">
+                    <p className="text-sm text-gray-300 md:text-base">
+                      Analysis Date: {data?.analysisDate}
+                    </p>
+                  </div>
+                </div>
 
-                  {/* Bottom Section with Site Health and Chart */}
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    {/* Site Health */}
-                    <div className="p-4 rounded-lg bg-white/5 lg:p-6">
-                      <h4 className="mb-4 text-lg font-medium text-white">
-                        Site Health
-                      </h4>
-                      <div className="flex flex-col md:flex-row">
-                        <div className="mb-4">
-                          <PieChart width={350} height={200}>
-                            <Pie
-                              dataKey="value"
-                              startAngle={180}
-                              endAngle={0}
-                              data={getPieChartData()}
-                              cx={175}
-                              cy={150}
-                              innerRadius={50}
-                              outerRadius={90}
-                              fill="#8884d8"
-                              stroke="none"
-                            >
-                              {getPieChartData().map((entry, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={entry.color}
-                                />
-                              ))}
-                            </Pie>
-                            <Label
-                              value={data?.healthData?.health.toString()}
-                              position="bottom"
-                              offset={-50}
-                              style={{
-                                fontSize: "32px",
-                                fontWeight: "bold",
-                                fill: "#00FFFF",
-                                textAnchor: "middle",
-                              }}
-                            />
-                          </PieChart>
-                        </div>
-                        <div className="flex flex-row items-center justify-center gap-4 space-y-2 md:flex-col">
-                          <div className="flex items-center justify-center space-x-2">
-                            <div className="w-3 h-3 bg-[#00FF7F] rounded-full"></div>
-                            <span className="text-sm text-gray-400">
-                              Health
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-center space-x-2">
-                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                            <span className="text-sm text-gray-400">
-                              Issues
-                            </span>
-                          </div>
-                        </div>
+                {/* Metrics Grid */}
+                <DashboardMetrics metrics={data} />
+
+                {/* Bottom Section with Site Health and Chart */}
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                  {/* Site Health */}
+                  <div className="p-4 rounded-lg bg-white/5 lg:p-6">
+                    <h4 className="mb-4 text-lg font-medium text-white">
+                      Site Health
+                    </h4>
+                    <div className="flex flex-col md:flex-row">
+                      <div className="mb-4">
+                        <PieChart width={350} height={200}>
+                          <Pie
+                            dataKey="value"
+                            startAngle={180}
+                            endAngle={0}
+                            data={getPieChartData()}
+                            cx={175}
+                            cy={150}
+                            innerRadius={50}
+                            outerRadius={90}
+                            fill="#8884d8"
+                            stroke="none"
+                          >
+                            {getPieChartData()?.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={entry.color}
+                              />
+                            ))}
+                          </Pie>
+                          <Label
+                            value={data?.siteHealth?.toString()}
+                            position="bottom"
+                            offset={-50}
+                            style={{
+                              fontSize: "32px",
+                              fontWeight: "bold",
+                              fill: "#00FFFF",
+                              textAnchor: "middle",
+                            }}
+                          />
+                        </PieChart>
                       </div>
-                    </div>
-
-                    {/* Chart */}
-                    <div className="p-4 rounded-lg bg-white/5 lg:p-6 lg:col-span-2">
-                      <div className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={getChartData()}>
-                            <XAxis
-                              dataKey="month"
-                              axisLine={false}
-                              tickLine={false}
-                              tick={{ fill: "#9CA3AF", fontSize: 12 }}
-                            />
-                            <YAxis
-                              domain={[0, 100]}
-                              axisLine={false}
-                              tickLine={false}
-                              tick={{ fill: "#9CA3AF", fontSize: 12 }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="health"
-                              stroke="#00FF7F"
-                              strokeWidth={2}
-                              dot={false}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="issues"
-                              stroke="#EF4444"
-                              strokeWidth={2}
-                              dot={false}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
+                      <div className="flex flex-row items-center justify-center gap-4 space-y-2 md:flex-col">
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="w-3 h-3 bg-[#00FF7F] rounded-full"></div>
+                          <span className="text-sm text-gray-400">
+                            Health
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          <span className="text-sm text-gray-400">
+                            Issues
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Chart */}
+                  <div className="p-4 rounded-lg bg-white/5 lg:p-6 lg:col-span-2">
+                    <div className="h-60">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={getChartData()}>
+                          <XAxis
+                            dataKey="month"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                          />
+                          <YAxis
+                            domain={[0, 100]}
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="health"
+                            stroke="#00FF7F"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="issues"
+                            stroke="#EF4444"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                renderErrorContent()
-              )}
-            </div>
-          )}
+              </div>
+            ) : (
+              renderErrorContent()
+            )}
+          </div>
+          {/* )} */}
         </div>
       </div>
       {currentIssue && (
         <IssueModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          issueType={currentIssue.type}
-          issueData={currentIssue.data}
+          issueType={errorData}
+          issueData={errorData}
         />
       )}
     </div>
