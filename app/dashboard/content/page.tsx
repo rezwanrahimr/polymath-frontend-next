@@ -13,6 +13,8 @@ import {
   RotateCcw,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 const AIContentWriter = () => {
   const [activeTab, setActiveTab] = useState("Generate Content");
@@ -580,55 +582,175 @@ This refined approach positions your content for maximum impact while maintainin
     }
   };
 
+  // const handleAction = async () => {
+  //   if (!prompt.trim()) return;
+
+  //   // Add user message to conversation
+  //   const userMessage: ConversationMessage = {
+  //     id: Date.now(),
+  //     type: "user",
+  //     content: prompt,
+  //     timestamp: new Date().toLocaleTimeString(),
+  //   };
+
+  //   setConversations((prev) => [...prev, userMessage]);
+  //   setIsGenerating(true);
+
+  //   // Simulate API delay
+  //   await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  //   // Get demo response based on tab
+  //   const responseText = getDemoResponse(activeTab, prompt, tone, wordCount);
+
+  //   // Add AI response with typing effect
+  //   const aiMessage: ConversationMessage = {
+  //     id: Date.now() + 1,
+  //     type: "ai",
+  //     content: "",
+  //     timestamp: new Date().toLocaleTimeString(),
+  //     isTyping: true,
+  //   };
+
+  //   setConversations((prev) => [...prev, aiMessage]);
+  //   setIsGenerating(false);
+
+  //   // Start typing animation
+  //   typeWriter(responseText, () => {
+  //     setConversations((prev) =>
+  //       prev.map((msg) =>
+  //         msg.id === aiMessage.id
+  //           ? { ...msg, content: responseText, isTyping: false }
+  //           : msg
+  //       )
+  //     );
+  //     setCurrentResponse("");
+  //   });
+
+  //   // Clear the prompt
+  //   setPrompt("");
+  // };
+
+
   const handleAction = async () => {
     if (!prompt.trim()) return;
 
-    // Add user message to conversation
+    // Add user message
     const userMessage: ConversationMessage = {
       id: Date.now(),
       type: "user",
       content: prompt,
       timestamp: new Date().toLocaleTimeString(),
     };
-
     setConversations((prev) => [...prev, userMessage]);
     setIsGenerating(true);
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Add placeholder AI message
+    const aiMessageId = Date.now() + 1;
+    setConversations((prev) => [
+      ...prev,
+      {
+        id: aiMessageId,
+        type: "ai",
+        content: "",
+        timestamp: new Date().toLocaleTimeString(),
+        isTyping: true,
+      },
+    ]);
 
-    // Get demo response based on tab
-    const responseText = getDemoResponse(activeTab, prompt, tone, wordCount);
+    try {
+      const api = activeTab === "Generate Content"
+        ? `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/generate-content`
+        : activeTab === "Analyses Content"
+          ? `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/analyze-content`
+          : `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/refine-content`;
 
-    // Add AI response with typing effect
-    const aiMessage: ConversationMessage = {
-      id: Date.now() + 1,
-      type: "ai",
-      content: "",
-      timestamp: new Date().toLocaleTimeString(),
-      isTyping: true,
-    };
+      const response = await axios.post(api, { content: prompt }, {
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${Cookies.get("auth_token")}`,
+        }
+      });
 
-    setConversations((prev) => [...prev, aiMessage]);
-    setIsGenerating(false);
+      const result = response.data;
 
-    // Start typing animation
-    typeWriter(responseText, () => {
+      // Handle the response based on active tab
+      let responseText = "";
+
+      if (result?.state === "true") {
+        switch (activeTab) {
+          case "Generate Content":
+            responseText = result?.data?.content || "No content generated";
+            break;
+
+          case "Analyses Content":
+            if (result?.data?.analysis) {
+              const analysis = result.data.analysis;
+              responseText = `
+📊 SEO Analysis Results:
+
+✅ Readability Score: ${analysis.readabilityScore}/100
+✅ Keyword Density: ${analysis.keywordDensity}%
+
+🔴 Issues Found:
+${analysis.issues.map((issue: any) => `• ${issue}`).join('\n')}
+                        `;
+            } else {
+              responseText = "No analysis data available";
+            }
+            break;
+
+          case "Refine Content":
+            // Adjust this based on what the refine-content API returns
+            responseText = result?.data?.refinedContent ||
+              result?.data?.suggestions ||
+              "Content refined successfully";
+            break;
+
+          default:
+            responseText = "Unknown tab selected";
+        }
+
+        // Start typing effect
+        typeWriter(responseText, () => {
+          setConversations((prev) =>
+            prev.map((msg) =>
+              msg.id === aiMessageId
+                ? { ...msg, content: responseText, isTyping: false }
+                : msg
+            )
+          );
+          setCurrentResponse("");
+        });
+      } else {
+        throw new Error(result?.message || "Operation failed.");
+      }
+    } catch (error: any) {
+      console.error("Axios error:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Something went wrong.";
+
       setConversations((prev) =>
         prev.map((msg) =>
-          msg.id === aiMessage.id
-            ? { ...msg, content: responseText, isTyping: false }
+          msg.id === aiMessageId
+            ? {
+              ...msg,
+              content: `❌ Error: ${errorMessage}`,
+              isTyping: false,
+            }
             : msg
         )
       );
-      setCurrentResponse("");
-    });
-
-    // Clear the prompt
-    setPrompt("");
+    } finally {
+      setIsGenerating(false);
+      setPrompt("");
+    }
   };
 
-  interface KeyPressEvent extends React.KeyboardEvent<HTMLTextAreaElement> {}
+
+  interface KeyPressEvent extends React.KeyboardEvent<HTMLTextAreaElement> { }
 
   const handleKeyPress = (e: KeyPressEvent) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -650,7 +772,7 @@ This refined approach positions your content for maximum impact while maintainin
     }
   };
 
-  const handleCopy = async (content:string) => {
+  const handleCopy = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
       toast.success('Coped!')
@@ -692,11 +814,10 @@ This refined approach positions your content for maximum impact while maintainin
                     setActiveTab(tab.id);
                     clearConversation();
                   }}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? "bg-gradient-to-r from-[#00FFFF] to-[#00E6E6] text-black shadow-lg shadow-cyan-500/25"
-                      : "text-gray-300 hover:text-white hover:bg-white/10 border border-white/20"
-                  }`}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${activeTab === tab.id
+                    ? "bg-gradient-to-r from-[#00FFFF] to-[#00E6E6] text-black shadow-lg shadow-cyan-500/25"
+                    : "text-gray-300 hover:text-white hover:bg-white/10 border border-white/20"
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {tab.label}
@@ -728,9 +849,8 @@ This refined approach positions your content for maximum impact while maintainin
             {conversations.map((message) => (
               <div
                 key={message.id}
-                className={`flex items-start gap-4 ${
-                  message.type === "user" ? "justify-end" : "justify-start"
-                }`}
+                className={`flex items-start gap-4 ${message.type === "user" ? "justify-end" : "justify-start"
+                  }`}
               >
                 {message.type === "ai" && (
                   <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-[#00FFFF] to-[#00E6E6] rounded-full flex items-center justify-center">
@@ -739,11 +859,10 @@ This refined approach positions your content for maximum impact while maintainin
                 )}
 
                 <div
-                  className={`max-w-[80%] rounded-2xl px-6 py-4 ${
-                    message.type === "user"
-                      ? "bg-[#2a2f3e] text-white"
-                      : "bg-[#1a1f2e] text-gray-300 border border-white/10"
-                  }`}
+                  className={`max-w-[80%] rounded-2xl px-6 py-4 ${message.type === "user"
+                    ? "bg-[#2a2f3e] text-white"
+                    : "bg-[#1a1f2e] text-gray-300 border border-white/10"
+                    }`}
                 >
                   {message.type === "ai" && (
                     <div className="flex items-center gap-2 mb-3 text-sm text-gray-400">
@@ -758,15 +877,15 @@ This refined approach positions your content for maximum impact while maintainin
                       <div className="whitespace-pre-wrap">
                         {message.content ||
                           (message.id ===
-                          conversations[conversations.length - 1]?.id
+                            conversations[conversations.length - 1]?.id
                             ? currentResponse
                             : "")}
                         {(message.isTyping ||
                           (message.id ===
                             conversations[conversations.length - 1]?.id &&
                             isTyping)) && (
-                          <span className="inline-block w-2 h-5 bg-[#00FFFF] ml-1 animate-pulse"></span>
-                        )}
+                            <span className="inline-block w-2 h-5 bg-[#00FFFF] ml-1 animate-pulse"></span>
+                          )}
                       </div>
                     ) : (
                       <p className="text-white">{message.content}</p>
@@ -804,11 +923,10 @@ This refined approach positions your content for maximum impact while maintainin
 
           {/* Input Section */}
           <div
-            className={`rounded-2xl bg-[#1a1f2e]/80 backdrop-blur-sm border transition-all duration-300 ${
-              isFocus
-                ? "border-[#00FFFF] shadow-[0_0_30px_rgba(0,255,255,0.3)]"
-                : "border-white/10"
-            }`}
+            className={`rounded-2xl bg-[#1a1f2e]/80 backdrop-blur-sm border transition-all duration-300 ${isFocus
+              ? "border-[#00FFFF] shadow-[0_0_30px_rgba(0,255,255,0.3)]"
+              : "border-white/10"
+              }`}
           >
             <div className="p-6 md:p-8">
               <div className="mb-6">
@@ -827,11 +945,10 @@ This refined approach positions your content for maximum impact while maintainin
                     onBlur={() => setIsFocus(false)}
                     placeholder={getPlaceholderText()}
                     disabled={isGenerating || isTyping}
-                    className={`w-full h-40 p-4 text-white bg-[#0f1419] rounded-xl border transition-all duration-300 resize-none focus:outline-none placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isFocus
-                        ? "border-[#00FFFF] shadow-[0_0_15px_rgba(0,255,255,0.2)]"
-                        : "border-white/20"
-                    }`}
+                    className={`w-full h-40 p-4 text-white bg-[#0f1419] rounded-xl border transition-all duration-300 resize-none focus:outline-none placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed ${isFocus
+                      ? "border-[#00FFFF] shadow-[0_0_15px_rgba(0,255,255,0.2)]"
+                      : "border-white/20"
+                      }`}
                     style={{ fontSize: "16px" }}
                   />
                   <div className="absolute text-xs text-gray-400 bottom-4 right-4">
@@ -844,7 +961,7 @@ This refined approach positions your content for maximum impact while maintainin
               {activeTab === "Generate Content" && (
                 <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-2">
                   {/* Tone Selection */}
-                  <div>
+                  {/*  <div>
                     <label className="block mb-3 text-sm font-medium text-gray-300">
                       Tone & Style
                     </label>
@@ -867,10 +984,10 @@ This refined approach positions your content for maximum impact while maintainin
                       </select>
                       <ChevronDown className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 pointer-events-none right-4 top-1/2" />
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Word Count */}
-                  <div>
+                  {/*  <div>
                     <label className="block mb-3 text-sm font-medium text-gray-300">
                       Target Length
                     </label>
@@ -893,7 +1010,7 @@ This refined approach positions your content for maximum impact while maintainin
                       </select>
                       <ChevronDown className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 pointer-events-none right-4 top-1/2" />
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               )}
 
@@ -906,25 +1023,24 @@ This refined approach positions your content for maximum impact while maintainin
                 </div>
 
                 <div className="flex gap-3">
-                  {(activeTab === "Analyses Content" ||
+                  {/*  {(activeTab === "Analyses Content" ||
                     activeTab === "Refine Content") && (
-                    <button
-                      onClick={() => setPrompt("")}
-                      disabled={isGenerating || isTyping}
-                      className="flex items-center gap-2 px-4 py-3 bg-[#2a2f3e] text-[#00FFFF] rounded-xl font-medium hover:bg-[#343a4a] transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50"
-                    >
-                      <PlusIcon className="w-4 h-4" />
-                    </button>
-                  )}
+                      <button
+                        onClick={() => setPrompt("")}
+                        disabled={isGenerating || isTyping}
+                        className="flex items-center gap-2 px-4 py-3 bg-[#2a2f3e] text-[#00FFFF] rounded-xl font-medium hover:bg-[#343a4a] transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50"
+                      >
+                        <PlusIcon className="w-4 h-4" />
+                      </button>
+                    )} */}
 
                   <button
                     onClick={handleAction}
                     disabled={!prompt.trim() || isGenerating || isTyping}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                      !prompt.trim() || isGenerating || isTyping
-                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-[#00FF7F] to-[#00E070] text-black hover:from-[#00E070] hover:to-[#00D060] hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,127,0.4)]"
-                    }`}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${!prompt.trim() || isGenerating || isTyping
+                      ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#00FF7F] to-[#00E070] text-black hover:from-[#00E070] hover:to-[#00D060] hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,127,0.4)]"
+                      }`}
                   >
                     {isGenerating ? (
                       <>
