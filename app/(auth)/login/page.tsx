@@ -88,7 +88,7 @@ const LoginPage: React.FC = () => {
 
     // API call
     try {
-      const api = `${process.env.NEXT_PUBLIC_API_URL}/analyze/login`;
+      const api = `${process.env.NEXT_PUBLIC_API_URL_DEV}/analyze/login`;
       const { data } = await axios.post(api, formatApiData, {
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ const LoginPage: React.FC = () => {
 
       if (data?.state) {
         // Store token in cookies
-        Cookies.set('auth_token', data?.token, {
+        Cookies.set('auth_token', data?.accessToken, {
           expires: 7,
           secure: true,
           sameSite: 'strict',

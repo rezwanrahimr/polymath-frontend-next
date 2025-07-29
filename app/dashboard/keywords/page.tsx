@@ -3,6 +3,8 @@
 import type React from "react"
 import { useState } from "react"
 import { Search, TrendingUp, TrendingDown } from "lucide-react"
+import axios from "axios"
+import Cookies from 'js-cookie';
 
 interface KeywordData {
   id: number
@@ -15,94 +17,95 @@ interface KeywordData {
   lastUpdate: string
 }
 
+interface ApiKeywordData {
+  keyword: string
+  intent: string
+  value: number
+  trend: string
+  kdPercentage: number
+  result: number
+  lastUpdate: string
+}
+
+interface ApiResponse {
+  status: string
+  message: string
+  data: {
+    url: string
+    totalKeywords: number
+    keywords: ApiKeywordData[]
+    page: number
+    limit: number
+    totalPages: number
+  }
+}
+
 const KeywordAnalysisPage: React.FC = () => {
   const [url, setUrl] = useState("")
   const [searchPerformed, setSearchPerformed] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-
-  // Mock keyword data
-  const keywordData: KeywordData[] = [
-    {
-      id: 1,
-      keyword: "google",
-      intent: "navigational",
-      value: 98110,
-      trend: "stable",
-      kd: 98,
-      result: "99M",
-      lastUpdate: "Last hour"
-    },
-    {
-      id: 2,
-      keyword: "google.com",
-      intent: "navigational",
-      value: 98110,
-      trend: "down",
-      kd: 97,
-      result: "89M",
-      lastUpdate: "Last hour"
-    },
-    {
-      id: 3,
-      keyword: "www.google.com",
-      intent: "navigational",
-      value: 96110,
-      trend: "down",
-      kd: 93,
-      result: "42M",
-      lastUpdate: "Last hour"
-    },
-    {
-      id: 4,
-      keyword: "google image",
-      intent: "informational",
-      value: 96110,
-      trend: "down",
-      kd: 92,
-      result: "44M",
-      lastUpdate: "Last hour"
-    },
-    {
-      id: 5,
-      keyword: "google key",
-      intent: "informational",
-      value: 96110,
-      trend: "down",
-      kd: 90,
-      result: "33M",
-      lastUpdate: "Last hour"
-    },
-    {
-      id: 6,
-      keyword: "google keyword",
-      intent: "informational",
-      value: 96110,
-      trend: "down",
-      kd: 89,
-      result: "22",
-      lastUpdate: "Last hour"
-    },
-    {
-      id: 7,
-      keyword: "keyword google",
-      intent: "informational",
-      value: 96110,
-      trend: "down",
-      kd: 80,
-      result: "20",
-      lastUpdate: "Last hour"
-    }
-  ]
+  const [keywordData, setKeywordData] = useState<KeywordData[]>([])
+  const [apiData, setApiData] = useState<ApiResponse | null>(null)
 
   const handleSearch = async () => {
     if (!url.trim()) return
 
     setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const api = `${process.env.NEXT_PUBLIC_API_URL_DEV}/analyze/keywords`
+      const response = await axios.get<ApiResponse>(`${api}?url=${encodeURIComponent(url)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Cookies.get('auth_token')}`
+        }
+      })
+      setApiData(response.data)
+
+      // Transform API data to match our component's interface
+      const transformedData = response.data.data.keywords.map((keyword, index) => ({
+        id: index + 1,
+        keyword: keyword.keyword,
+        intent: keyword.intent as KeywordData['intent'],
+        value: keyword.value,
+        trend: mapTrend(keyword.trend),
+        kd: keyword.kdPercentage,
+        result: keyword.result.toString(),
+        lastUpdate: formatLastUpdate(keyword.lastUpdate)
+      }))
+
+      setKeywordData(transformedData)
       setSearchPerformed(true)
+    } catch (error) {
+      console.error("Error fetching keyword data:", error)
+      // Handle error (show error message to user)
+    } finally {
       setIsLoading(false)
-    }, 1500)
+    }
+  }
+
+  // Helper function to map API trend values to our component's trend values
+  const mapTrend = (trend: string): 'up' | 'down' | 'stable' => {
+    switch (trend.toLowerCase()) {
+      case 'upward':
+        return 'up'
+      case 'downward':
+        return 'down'
+      default:
+        return 'stable'
+    }
+  }
+
+  // Helper function to format last update date
+  const formatLastUpdate = (dateString: string): string => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60)
+
+    if (diffInHours < 24) {
+      return `Last ${Math.floor(diffInHours)} hour${Math.floor(diffInHours) !== 1 ? 's' : ''}`
+    } else {
+      return date.toLocaleDateString()
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -125,6 +128,21 @@ const KeywordAnalysisPage: React.FC = () => {
         return 'bg-gray-500'
     }
   }
+  const getIntentText = (intent: string) => {
+    switch (intent) {
+      case 'navigational':
+        return 'N'
+      case 'informational':
+        return 'I'
+      case 'commercial':
+        return 'C'
+      case 'transactional':
+        return 'T'
+      default:
+        return 'Unknown'
+    }
+  }
+
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
@@ -213,8 +231,9 @@ const KeywordAnalysisPage: React.FC = () => {
           </div>
 
           {/* Results Section */}
-          {searchPerformed && (
+          {searchPerformed && apiData && (
             <div className="mb-8">
+
               {/* Keyword Table */}
               <div className="rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
@@ -244,29 +263,17 @@ const KeywordAnalysisPage: React.FC = () => {
                             </div>
                           </td>
                           <td className="py-4 px-6">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <rect width="24" height="24" rx="12" fill="#E8BB20" />
-                              <path d="M12.2884 16.668C11.3364 16.668 10.5104 16.458 9.81042 16.038C9.11976 15.6087 8.58776 15.016 8.21442 14.26C7.84109 13.4947 7.65442 12.608 7.65442 11.6C7.65442 10.592 7.84109 9.71 8.21442 8.954C8.58776 8.18867 9.11976 7.596 9.81042 7.176C10.5104 6.74667 11.3364 6.532 12.2884 6.532C13.4084 6.532 14.3184 6.798 15.0184 7.33C15.7184 7.862 16.1664 8.61333 16.3624 9.584H15.0604C14.9111 8.97733 14.6078 8.492 14.1504 8.128C13.6931 7.75467 13.0724 7.568 12.2884 7.568C11.5884 7.568 10.9818 7.73133 10.4684 8.058C9.95509 8.37533 9.55842 8.83733 9.27842 9.444C8.99842 10.0413 8.85842 10.76 8.85842 11.6C8.85842 12.44 8.99842 13.1633 9.27842 13.77C9.55842 14.3673 9.95509 14.8293 10.4684 15.156C10.9818 15.4733 11.5884 15.632 12.2884 15.632C13.0724 15.632 13.6931 15.4547 14.1504 15.1C14.6078 14.736 14.9111 14.2553 15.0604 13.658H16.3624C16.1664 14.6007 15.7184 15.338 15.0184 15.87C14.3184 16.402 13.4084 16.668 12.2884 16.668Z" fill="white" />
-                            </svg>
+                            <div className={`w-6 h-6 rounded-full text-center ${getIntentColor(keyword.intent)}`}>{getIntentText(keyword.intent)}</div>
                           </td>
                           <td className="py-4 px-6">
                             <span className="text-white">{keyword.value.toLocaleString()}</span>
                           </td>
                           <td className="py-4 px-6">
-                            <svg width="44" height="26" viewBox="0 0 44 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M13.0588 8.79743C7.16077 3.88242 3.22875 9.20702 2 12.4837V26H42.5489V3.88243C41.7297 4.29201 39.1084 4.61967 35.1764 2.65366C30.2613 0.196156 29.0326 5.11117 24.1176 10.0262C19.2026 14.9412 20.4313 14.9412 13.0588 8.79743Z" fill="url(#paint0_linear_6183_901)" fill-opacity="0.25" />
-                              <path d="M2 12.4837C3.22875 9.20702 7.16077 3.88242 13.0588 8.79743C20.4313 14.9412 19.2026 14.9412 24.1176 10.0262C29.0326 5.11117 30.2613 0.196156 35.1764 2.65366C39.1084 4.61967 41.7297 4.29201 42.5489 3.88243" stroke="#00FFFF" stroke-width="2.45751" />
-                              <defs>
-                                <linearGradient id="paint0_linear_6183_901" x1="22.2744" y1="2" x2="22.2744" y2="26" gradientUnits="userSpaceOnUse">
-                                  <stop offset="0.495192" stop-color="#00FFFF" />
-                                  <stop offset="1" stop-color="#009999" stop-opacity="0" />
-                                </linearGradient>
-                              </defs>
-                            </svg>
+                            {getTrendIcon(keyword.trend)}
                           </td>
                           <td className="py-4 px-6">
-                            <span className={`font-medium ${getKDColor(keyword.kd)} flex items-center gap-1`}>
-                              {keyword.kd} 
+                            <span className={`font-medium flex items-center gap-1`}>
+                              {keyword.kd}
                               <svg width="11" height="12" viewBox="0 0 11 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="5.5" cy="6" r="5.5" fill="#E60000" />
                               </svg>
@@ -292,4 +299,4 @@ const KeywordAnalysisPage: React.FC = () => {
   )
 }
 
-export default KeywordAnalysisPage
+export default KeywordAnalysisPage;

@@ -103,14 +103,14 @@ const MainContent: React.FC = () => {
   const renderIssueGroup = (title: string, issues: any[]) => (
     <div className="mb-8">
       <h3 className="mb-8 text-lg font-medium text-white">{title}</h3>
-      <div className="space-y-4">
+      <div className="space-y-4 w-full">
         {issues?.map((item, index) => (
           <div
             key={index}
             className="w-full pb-4 border-b border-gray-600 md:flex md:justify-between"
           >
             <div className="flex items-center justify-between w-full mb-3">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 w-full">
                 <svg
                   width="22"
                   height="23"
