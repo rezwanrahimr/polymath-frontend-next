@@ -659,10 +659,10 @@ This refined approach positions your content for maximum impact while maintainin
 
     try {
       const api = activeTab === "Generate Content"
-        ? `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/generate-content`
+        ? `${process.env.NEXT_PUBLIC_API_URL}/seo-analyzer/generate-content`
         : activeTab === "Analyses Content"
-          ? `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/analyze-content`
-          : `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/refine-content`;
+          ? `${process.env.NEXT_PUBLIC_API_URL}/seo-analyzer/analyze-content`
+          : `${process.env.NEXT_PUBLIC_API_URL}/seo-analyzer/refine-content`;
 
       const response = await axios.post(api, { content: prompt }, {
         headers: {

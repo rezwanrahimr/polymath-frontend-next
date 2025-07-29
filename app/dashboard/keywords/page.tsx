@@ -52,7 +52,7 @@ const KeywordAnalysisPage: React.FC = () => {
 
     setIsLoading(true)
     try {
-      const api = `${process.env.NEXT_PUBLIC_API_URL_DEV}/analyze/keywords`
+      const api = `${process.env.NEXT_PUBLIC_API_URL}/analyze/keywords`
       const response = await axios.get<ApiResponse>(`${api}?url=${encodeURIComponent(url)}`, {
         headers: {
           'Content-Type': 'application/json',
