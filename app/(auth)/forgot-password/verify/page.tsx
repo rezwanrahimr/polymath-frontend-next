@@ -3,21 +3,43 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Logo from '../../../../public/images/logo.png';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const ForgetPasswordPage2: React.FC = () => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const router = useRouter();
 
     const handleSubmit = async () => {
-        setIsLoading(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            console.log('Passwords submitted:', newPassword, confirmPassword);
-            // Handle submission logic here
-        } catch (error) {
-            console.error('Submission failed:', error);
+            setIsLoading(true);
+            const api = `${process.env.NEXT_PUBLIC_API_URL_DEV}/analyze/set-new-password`;
+            const { data } = await axios.post(api, {
+                email: "rezwanrahim99@gmail.com",
+                newPassword: newPassword,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (data?.state) {
+                router.push('/login');
+                toast.success(data?.message || 'Password updated successfully!');
+            } else {
+                toast.error(data?.message || 'Failed to verify code.');
+            }
+
+        } catch (error: any) {
+            if (axios.isAxiosError(error)) {
+                toast.error(error.response?.data?.message || 'An error occurred. Please try again.');
+            } else {
+                toast.error('An unexpected error occurred. Please try again.');
+            }
         } finally {
             setIsLoading(false);
         }

@@ -18,6 +18,7 @@ import { MetricCard } from "@/types";
 import DashboardMetrics from "@/components/DashboardMetrics";
 import DownloadIcon from "@/components/icons/Download";
 import useSWR from "swr";
+import axios from "axios";
 
 
 // Fetcher function for SWR
@@ -29,8 +30,25 @@ const fetcher = async (url: string) => {
   return response.json();
 };
 
+
+// POST API call function
+const postData = async (url: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL_DEV}/crawler/start?url=${encodeURIComponent(url)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to post data");
+  }
+  return response.json();
+};
+
+
 const MainContent: React.FC = () => {
   const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
   const [submittedUrl, setSubmittedUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,21 +62,21 @@ const MainContent: React.FC = () => {
   } | null>(null);
 
   // API call using SWR
-  const { data, error, isLoading } = useSWR(
+  const { data: analysisData, error, isLoading } = useSWR(
     submittedUrl
-      ? `${process.env.NEXT_PUBLIC_API_URL}/analyze/website?url=${encodeURIComponent(submittedUrl)}`
+      ? `${process.env.NEXT_PUBLIC_API_URL_DEV}/analyze/website?url=${encodeURIComponent(submittedUrl)}`
       : null,
     fetcher
   );
+
+  const data = analysisData?.data;
 
   const { data: errorData, error: seoError, isLoading: isErrorLoading } = useSWR(
     submittedUrl
-      ? `${process.env.NEXT_PUBLIC_API_URL}/seo-analyzer/analyze?url=${encodeURIComponent(submittedUrl)}`
+      ? `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/analyze?url=${encodeURIComponent(submittedUrl)}`
       : null,
     fetcher
   );
-
-  console.log("errorData:", errorData);
 
 
   // Reset submitted URL if input is cleared
@@ -68,10 +86,16 @@ const MainContent: React.FC = () => {
     }
   }, [url]);
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (url.trim()) {
-      setSubmittedUrl(url.trim());
-      setActiveTab("overview");
+      setLoading(true);
+      const result = await postData(url.trim());
+
+      if (result.status) {
+        setSubmittedUrl(url.trim());
+        setActiveTab("overview");
+      }
+      setLoading(false);
     }
   };
 
@@ -234,7 +258,7 @@ const MainContent: React.FC = () => {
   };
 
   // Loading state
-  if (isLoading || isErrorLoading) {
+  if (isLoading || isErrorLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0D1117]">
         <div className="text-center">
@@ -264,6 +288,8 @@ const MainContent: React.FC = () => {
       </div>
     );
   }
+
+
 
   return (
     <div className="min-h-screen bg-[#0D1117] text-white">
@@ -448,7 +474,7 @@ const MainContent: React.FC = () => {
                 <div className="bg-[#161B22] rounded-lg p-4 md:p-6 mb-8">
                   {/* Website Analysis Header */}
                   <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-6">
+                    <div className="flex flex-1 flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-6">
                       {/* SEO Score Circle */}
                       <div className="flex flex-col justify-center text-center md:justify-start">
                         <div className="relative w-24 h-24 mx-auto mb-2 md:w-32 md:h-32">
@@ -495,14 +521,14 @@ const MainContent: React.FC = () => {
                         <p className="text-[#00FFFF] text-base md:text-lg mb-2">
                           Analysis Reports
                         </p>
-                        <p className="text-sm leading-relaxed text-gray-300 md:text-base">
+                        <p className="text-sm leading-relaxed text-gray-300 md:text-base w-full word-wrap">
                           {data?.metaDescription}
                         </p>
                       </div>
                     </div>
 
                     {/* Analysis Date */}
-                    <div className="text-center lg:text-right">
+                    <div className="text-center lg:text-right w-content flex-1">
                       <p className="text-sm text-gray-300 md:text-base">
                         Analysis Date: {data?.analysisDate}
                       </p>

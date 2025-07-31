@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
 
 
+
 interface HeaderProps {
   onMenuClick: () => void;
 }
@@ -66,6 +67,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     route.push('/login');
   };
 
+  const userInfo = Cookies.get('user');
+  const user = userInfo ? JSON.parse(userInfo) : null;
+
   return (
     <header className="relative h-[110px] bg-[#0D1117] ps-4 md:ps-8 pe-4 md:pe-12 py-4 flex items-center justify-between">
       <div className="absolute bottom-0 left-4 md:left-8 right-4 md:right-12 h-[2px] bg-white/24" />
@@ -85,14 +89,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           >
             <div className="w-10 h-10 bg-gray-600 rounded-full overflow-hidden">
               <Image
-                src="/api/placeholder/40/40"
+                src="/images/user-avatar.png"
                 alt="User Avatar"
                 width={40}
                 height={40}
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="text-[#00FFFF] text-xl md:text-[24px] font-normal">Shivamo</span>
+            <span className="text-[#00FFFF] text-xl md:text-[24px] font-normal">{user?.username}</span>
             <svg
               className={`w-4 h-4 text-gray-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''
                 }`}
@@ -112,7 +116,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               <div className="px-5 py-5 flex flex-col items-center">
                 <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#00FFFF] shadow-md">
                   <Image
-                    src="/api/placeholder/64/64"
+                    src="/images/user-avatar.png"
                     alt="User Avatar"
                     width={64}
                     height={64}
@@ -123,11 +127,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 <div className="mt-4 w-full text-left space-y-2">
                   <div>
                     <p className="text-[#00FFFF] font-medium text-sm">Name</p>
-                    <p className="text-white font-semibold text-sm">Shivamo Beroiuk</p>
+                    <p className="text-white font-semibold text-sm">{user?.username}</p>
                   </div>
                   <div>
                     <p className="text-[#00FFFF] font-medium text-sm">Email</p>
-                    <p className="text-white break-all text-sm">shivamoberoiuk@gmail.com</p>
+                    <p className="text-white break-all text-sm">{user?.email}</p>
                   </div>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface FormData {
   email: string;
@@ -31,6 +32,7 @@ const LoginPage: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isForgetPasswordLoading, setForgetPasswordLoading] = useState(false);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -88,7 +90,7 @@ const LoginPage: React.FC = () => {
 
     // API call
     try {
-      const api = `${process.env.NEXT_PUBLIC_API_URL}/analyze/login`;
+      const api = `${process.env.NEXT_PUBLIC_API_URL_DEV}/analyze/login`;
       const { data } = await axios.post(api, formatApiData, {
         headers: {
           'Content-Type': 'application/json',
@@ -102,6 +104,12 @@ const LoginPage: React.FC = () => {
           secure: true,
           sameSite: 'strict',
         })
+
+        Cookies.set('user', JSON.stringify(data?.user), {
+          expires: 7,
+          secure: true,
+          sameSite: 'strict',
+        });
 
         // Redirect to dashboard
         router.push('/dashboard');
@@ -126,6 +134,40 @@ const LoginPage: React.FC = () => {
     setShowPassword(!showPassword);
   };
 
+
+  const handleForgetPassword = async () => {
+
+    try {
+      setForgetPasswordLoading(true);
+      const api = `${process.env.NEXT_PUBLIC_API_URL_DEV}/analyze/forget-password`;
+      const { data } = await axios.post(api, {
+        email: "rezwanrahim99@gmail.com"
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (data?.state) {
+        // Redirect to forgot password page
+        router.push('/forgot-password');
+        toast.success(data?.message || 'Password reset email sent!');
+      } else {
+        toast.error(data?.message || 'Failed to send password reset email.');
+      }
+
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || 'An error occurred. Please try again.');
+      } else {
+        toast.error('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setForgetPasswordLoading(false);
+    }
+  };
+
+
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4 py-8"
@@ -146,96 +188,103 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Login Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white/4 rounded-xl p-8 shadow-2xl border-[1px] border-white/4 "
-        >
-          <h2 className="text-[#00FFFF] text-[24px] font-semibold text-center mb-6">Login</h2>
-          <div className="mb-5 bg-white/8  h-[2px]" />
-          <div className="space-y-6">
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-[#FFFFFF] text-[18px] font-normal mb-2">
-                Enter mail
-              </label>
-              <input
-                type="text"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="yourmail@mailhere"
-                className={`w-full h-[56px] px-4 py-3 bg-[#0D1117] text-[#FFFFFF] rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-600'
-                  } focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:border-transparent placeholder-gray-400 transition-colors`}
-              />
-              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-            </div>
 
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-[#FFFFFF] text-[18px] font-normal mb-2">
-                Enter Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="••••••••••••••"
-                  className={`w-full h-[56px] px-4 py-3 pr-12 bg-[#0D1117] text-[#FFFFFF] rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-600'
-                    } focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:border-transparent placeholder-gray-400 transition-colors`}
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#00FFFF] transition-colors"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-              {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-            </div>
-
-            {/* Login Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-[55px] py-3 bg-[#00FF7F] text-lg  text-[#0D1117] font-semibold rounded-lg hover:bg-[#00E66B] focus:outline-none focus:ring-2 focus:ring-[#00FF7F] focus:ring-offset-2 focus:ring-offset-[#1a2332] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-[#0D1117] border-t-transparent rounded-full animate-spin"></div>
-                  Logging in...
-                </div>
-              ) : (
-                'Login'
-              )}
-            </button>
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-[#FFFFFF] text-[18px]  font-normal cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 text-[#00FFFF] bg-[#0D1117] border-gray-600 rounded focus:ring-[#00FFFF] focus:ring-2"
-                />
-                Remember me
-              </label>
-              <button
-                type="button"
-                className="text-[#00FFFF] text-[18px] font-normal hover:text-[#00E6E6] transition-colors"
-                onClick={() => router.push('/forgot-password')}
+        <div className="relative">
+          <div className="relative min-h-[500px]">
+            {isForgetPasswordLoading ? <LoadingSpinner size="lg" text="Please wait.... Sending verification code to your email." /> :
+              <form
+                onSubmit={handleSubmit}
+                className="bg-white/4 rounded-xl p-8 shadow-2xl border-[1px] border-white/4 "
               >
-                Forgot Password?
-              </button>
-            </div>
+                <h2 className="text-[#00FFFF] text-[24px] font-semibold text-center mb-6">Login</h2>
+                <div className="mb-5 bg-white/8  h-[2px]" />
+                <div className="space-y-6">
+                  {/* Email Field */}
+                  <div>
+                    <label htmlFor="email" className="block text-[#FFFFFF] text-[18px] font-normal mb-2">
+                      Enter mail
+                    </label>
+                    <input
+                      type="text"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="yourmail@mailhere"
+                      className={`w-full h-[56px] px-4 py-3 bg-[#0D1117] text-[#FFFFFF] rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-600'
+                        } focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:border-transparent placeholder-gray-400 transition-colors`}
+                    />
+                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                  </div>
+
+                  {/* Password Field */}
+                  <div>
+                    <label htmlFor="password" className="block text-[#FFFFFF] text-[18px] font-normal mb-2">
+                      Enter Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        id="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        placeholder="••••••••••••••"
+                        className={`w-full h-[56px] px-4 py-3 pr-12 bg-[#0D1117] text-[#FFFFFF] rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-600'
+                          } focus:outline-none focus:ring-2 focus:ring-[#00FFFF] focus:border-transparent placeholder-gray-400 transition-colors`}
+                      />
+                      <button
+                        type="button"
+                        onClick={togglePasswordVisibility}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#00FFFF] transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                    {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                  </div>
+
+                  {/* Login Button */}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-[55px] py-3 bg-[#00FF7F] text-lg  text-[#0D1117] font-semibold rounded-lg hover:bg-[#00E66B] focus:outline-none focus:ring-2 focus:ring-[#00FF7F] focus:ring-offset-2 focus:ring-offset-[#1a2332] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-5 h-5 border-2 border-[#0D1117] border-t-transparent rounded-full animate-spin"></div>
+                        Logging in...
+                      </div>
+                    ) : (
+                      'Login'
+                    )}
+                  </button>
+
+                  {/* Remember Me & Forgot Password */}
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 text-[#FFFFFF] text-[18px]  font-normal cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="rememberMe"
+                        checked={formData.rememberMe}
+                        onChange={handleInputChange}
+                        className="w-4 h-4 text-[#00FFFF] bg-[#0D1117] border-gray-600 rounded focus:ring-[#00FFFF] focus:ring-2"
+                      />
+                      Remember me
+                    </label>
+                    <button
+                      type="button"
+                      className="text-[#00FFFF] text-[18px] font-normal hover:text-[#00E6E6] transition-colors"
+                      onClick={() => handleForgetPassword()}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                </div>
+              </form>
+            }
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

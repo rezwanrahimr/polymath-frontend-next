@@ -659,12 +659,13 @@ This refined approach positions your content for maximum impact while maintainin
 
     try {
       const api = activeTab === "Generate Content"
-        ? `${process.env.NEXT_PUBLIC_API_URL}/seo-analyzer/generate-content`
+        ? `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/generate-content`
         : activeTab === "Analyses Content"
-          ? `${process.env.NEXT_PUBLIC_API_URL}/seo-analyzer/analyze-content`
-          : `${process.env.NEXT_PUBLIC_API_URL}/seo-analyzer/refine-content`;
+          ? `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/analyze-content`
+          : `${process.env.NEXT_PUBLIC_API_URL_DEV}/seo-analyzer/refine-content`;
 
-      const response = await axios.post(api, { content: prompt }, {
+      const promptType = activeTab === "Generate Content" ? "prompt" : "content";
+      const response = await axios.post(api, { [promptType]: prompt }, {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
@@ -737,7 +738,7 @@ ${analysis.issues.map((issue: any) => `• ${issue}`).join('\n')}
           msg.id === aiMessageId
             ? {
               ...msg,
-              content: `❌ Error: ${errorMessage}`,
+              content: `Something went wrong: ${errorMessage}`,
               isTyping: false,
             }
             : msg

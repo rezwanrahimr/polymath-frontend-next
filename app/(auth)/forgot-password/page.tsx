@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Logo from '../../../public/images/logo.png';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const ForgotPasswordPage1 = () => {
     const [code, setCode] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
-    const [email] = useState('you*******ge@gmail.com');
+    const [email] = useState('rezwanrahim99@gmail.com');
     const [countdown, setCountdown] = useState(120);
     const [showResend, setShowResend] = useState(false);
     const router = useRouter();
@@ -31,23 +33,40 @@ const ForgotPasswordPage1 = () => {
     };
 
     const handleSubmit = async () => {
-        setIsLoading(true);
-
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            router.push('/forgot-password/verify');
-            console.log('Code submitted:', code);
-            // Handle successful submission here
-        } catch (error) {
-            console.error('Submission failed:', error);
+            setIsLoading(true);
+            const api = `${process.env.NEXT_PUBLIC_API_URL_DEV}/analyze/verify-forget-password`;
+            const { data } = await axios.post(api, {
+                email: "rezwanrahim99@gmail.com",
+                code: code,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (data?.state) {
+                router.push('/forgot-password/verify');
+            } else {
+                toast.error(data?.message || 'Failed to verify code.');
+            }
+
+        } catch (error: any) {
+            if (axios.isAxiosError(error)) {
+                toast.error(error.response?.data?.message || 'An error occurred. Please try again.');
+            } else {
+                toast.error('An unexpected error occurred. Please try again.');
+            }
         } finally {
             setIsLoading(false);
         }
+
+
     };
 
     const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value.replace(/\D/g, ''); // Only allow numbers
-        if (value.length <= 5) {
+        if (value.length <= 10) {
             setCode(value);
         }
     };
@@ -130,7 +149,7 @@ const ForgotPasswordPage1 = () => {
                         <div className="flex justify-center">
                             <input
                                 type="text"
-                                maxLength={5}
+                                maxLength={6}
                                 value={code}
                                 onChange={handleCodeChange}
                                 placeholder="68567"
