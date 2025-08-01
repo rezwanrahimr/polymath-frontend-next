@@ -10,8 +10,6 @@ const Content: React.FC<Props> = ({ isActive }) => {
             <path d="M13.5 7C14.1332 6.06586 15.4907 4.16107 16.7613 4.00976C17.6287 3.90648 18.3472 4.62499 19.7842 6.06202L19.938 6.2158C21.375 7.65283 22.0935 8.37135 21.9902 9.23867C21.8389 10.5092 19.9341 11.8668 19 12.5" stroke={strokeColor} stroke-width="1.5" stroke-linejoin="round" />
             <path d="M2 4H8" stroke={strokeColor} stroke-width="1.5" stroke-linecap="round" />
         </svg>
-
-
     );
 };
 

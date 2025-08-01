@@ -46,9 +46,9 @@ const LoginPage: React.FC = () => {
       newErrors.email = 'Email is required';
     }
 
-    // else if (!validateEmail(formData.email)) {
-    //   newErrors.email = 'Please enter a valid email address';
-    // }
+    else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -84,7 +84,7 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     const formatApiData = {
-      username: formData.email,
+      email: formData.email,
       password: formData.password,
     }
 
