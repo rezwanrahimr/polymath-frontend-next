@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { Search, TrendingUp, TrendingDown } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Search, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import axios from "axios"
-import Cookies from 'js-cookie';
+import Cookies from 'js-cookie'
 
 interface KeywordData {
   id: number
@@ -46,22 +46,36 @@ const KeywordAnalysisPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [keywordData, setKeywordData] = useState<KeywordData[]>([])
   const [apiData, setApiData] = useState<ApiResponse | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
-  const handleSearch = async () => {
+  const handleSearch = async (page: number = 1, requestedLimit?: number) => {
     if (!url.trim()) return
 
     setIsLoading(true)
     try {
+      const limit = requestedLimit || itemsPerPage
       const api = `${process.env.NEXT_PUBLIC_API_URL_DEV}/analyze/keywords`
-      const response = await axios.get<ApiResponse>(`${api}?url=${encodeURIComponent(url)}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Cookies.get('auth_token')}`
+      const response = await axios.get<ApiResponse>(
+        `${api}?url=${encodeURIComponent(url)}&page=${page}&limit=${limit}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get('auth_token')}`
+          }
         }
-      })
-      setApiData(response.data)
+      )
 
-      // Transform API data to match our component's interface
+      // Always use the API's returned limit to stay in sync
+      const apiLimit = response.data.data.limit
+      if (apiLimit !== limit) {
+        console.warn(`API override: Requested ${limit} items, got ${apiLimit}`)
+        setItemsPerPage(apiLimit)
+      }
+
+      setApiData(response.data)
+      setCurrentPage(response.data.data.page)
+
       const transformedData = response.data.data.keywords.map((keyword, index) => ({
         id: index + 1,
         keyword: keyword.keyword,
@@ -77,25 +91,19 @@ const KeywordAnalysisPage: React.FC = () => {
       setSearchPerformed(true)
     } catch (error) {
       console.error("Error fetching keyword data:", error)
-      // Handle error (show error message to user)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Helper function to map API trend values to our component's trend values
   const mapTrend = (trend: string): 'up' | 'down' | 'stable' => {
     switch (trend.toLowerCase()) {
-      case 'upward':
-        return 'up'
-      case 'downward':
-        return 'down'
-      default:
-        return 'stable'
+      case 'upward': return 'up'
+      case 'downward': return 'down'
+      default: return 'stable'
     }
   }
 
-  // Helper function to format last update date
   const formatLastUpdate = (dateString: string): string => {
     const date = new Date(dateString)
     const now = new Date()
@@ -114,63 +122,171 @@ const KeywordAnalysisPage: React.FC = () => {
     }
   }
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > (apiData?.data.totalPages || 1)) return
+    handleSearch(newPage)
+  }
+
+  const handleItemsPerPageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLimit = parseInt(e.target.value)
+    setItemsPerPage(newLimit)
+    setCurrentPage(1)
+    await handleSearch(1, newLimit)
+  }
+
   const getIntentColor = (intent: string) => {
     switch (intent) {
-      case 'navigational':
-        return 'bg-blue-500'
-      case 'informational':
-        return 'bg-yellow-500'
-      case 'commercial':
-        return 'bg-green-500'
-      case 'transactional':
-        return 'bg-purple-500'
-      default:
-        return 'bg-gray-500'
-    }
-  }
-  const getIntentText = (intent: string) => {
-    switch (intent) {
-      case 'navigational':
-        return 'N'
-      case 'informational':
-        return 'I'
-      case 'commercial':
-        return 'C'
-      case 'transactional':
-        return 'T'
-      default:
-        return 'Unknown'
+      case 'navigational': return 'bg-blue-500'
+      case 'informational': return 'bg-yellow-500'
+      case 'commercial': return 'bg-green-500'
+      case 'transactional': return 'bg-purple-500'
+      default: return 'bg-gray-500'
     }
   }
 
+  const getIntentText = (intent: string) => {
+    switch (intent) {
+      case 'navigational': return 'N'
+      case 'informational': return 'I'
+      case 'commercial': return 'C'
+      case 'transactional': return 'T'
+      default: return 'Unknown'
+    }
+  }
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up':
-        return <TrendingUp className="w-4 h-4 text-green-500" />
-      case 'down':
-        return <TrendingDown className="w-4 h-4 text-red-500" />
-      default:
-        return <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
+      case 'up': return <TrendingUp className="w-4 h-4 text-green-500" />
+      case 'down': return <TrendingDown className="w-4 h-4 text-red-500" />
+      default: return <div className="w-4 h-4 bg-gray-500 rounded-full"></div>
     }
   }
 
-  const getKDColor = (kd: number) => {
-    if (kd >= 80) return 'text-red-500'
-    if (kd >= 60) return 'text-yellow-500'
-    return 'text-green-500'
+  const renderPagination = () => {
+    if (!apiData || apiData.data.totalPages <= 1) return null
+
+    const actualLimit = apiData.data.limit
+    const totalPages = apiData.data.totalPages
+    const startItem = ((currentPage - 1) * actualLimit) + 1
+    const endItem = Math.min(currentPage * actualLimit, apiData.data.totalKeywords)
+
+    return (
+      <div className="flex flex-col md:flex-row items-center justify-between mt-6 gap-4">
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-400">
+            Showing {startItem}-{endItem} of {apiData.data.totalKeywords} keywords
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <label htmlFor="itemsPerPage" className="text-sm text-gray-400 whitespace-nowrap">
+              Show:
+            </label>
+            <select
+              id="itemsPerPage"
+              value={apiData.data.limit}
+              onChange={handleItemsPerPageChange}
+              className="bg-[#161B22] border border-gray-700 text-white text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#00FFFF]"
+              disabled={isLoading}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={30}>30</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1 || isLoading}
+            className="p-2 rounded-md border border-gray-700 bg-[#161B22] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#21262D] transition-colors"
+            aria-label="First page"
+          >
+            <ChevronsLeft className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1 || isLoading}
+            className="p-2 rounded-md border border-gray-700 bg-[#161B22] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#21262D] transition-colors"
+            aria-label="Previous page"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          <div className="flex space-x-1">
+            {currentPage > 3 && (
+              <>
+                <button
+                  onClick={() => handlePageChange(1)}
+                  className="px-3 py-1 rounded-md border border-gray-700 bg-[#161B22] hover:bg-[#21262D] transition-colors hidden sm:block"
+                  disabled={isLoading}
+                >
+                  1
+                </button>
+                <span className="px-2 hidden sm:flex items-center">...</span>
+              </>
+            )}
+
+            {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+              const page = Math.max(1, Math.min(currentPage - 1, totalPages - 2)) + i
+              return (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-1 rounded-md border ${page === currentPage ? 'border-[#00FFFF] bg-[#00FFFF]/10' : 'border-gray-700 bg-[#161B22] hover:bg-[#21262D]'} transition-colors`}
+                  disabled={isLoading}
+                >
+                  {page}
+                </button>
+              )
+            })}
+
+            {currentPage < totalPages - 2 && (
+              <>
+                <span className="px-2 hidden sm:flex items-center">...</span>
+                <button
+                  onClick={() => handlePageChange(totalPages)}
+                  className="px-3 py-1 rounded-md border border-gray-700 bg-[#161B22] hover:bg-[#21262D] transition-colors hidden sm:block"
+                  disabled={isLoading}
+                >
+                  {totalPages}
+                </button>
+              </>
+            )}
+          </div>
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages || isLoading}
+            className="p-2 rounded-md border border-gray-700 bg-[#161B22] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#21262D] transition-colors"
+            aria-label="Next page"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage === totalPages || isLoading}
+            className="p-2 rounded-md border border-gray-700 bg-[#161B22] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#21262D] transition-colors"
+            aria-label="Last page"
+          >
+            <ChevronsRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-[#0D1117] text-white">
       <div className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-full">
-          {/* Header */}
           <h2 className="text-2xl md:text-3xl lg:text-[32px] font-medium text-[#00FFFF] mb-4">
             Search Keyword
           </h2>
 
-          {/* Search Input */}
           <div className="flex items-center w-full mb-8 md:mb-12">
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -190,7 +306,7 @@ const KeywordAnalysisPage: React.FC = () => {
               />
 
               <button
-                onClick={handleSearch}
+                onClick={() => handleSearch(1)}
                 disabled={isLoading}
                 className="absolute inset-y-0 right-0 hidden md:flex items-center justify-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 m-2 mt-3 w-[160px] h-[45px] text-black font-normal disabled:opacity-50"
                 style={{ background: "linear-gradient(to right, #00FF7F, #00C260)" }}
@@ -211,10 +327,9 @@ const KeywordAnalysisPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile Search Button */}
           <div className="md:hidden mb-8">
             <button
-              onClick={handleSearch}
+              onClick={() => handleSearch(1)}
               disabled={isLoading}
               className="w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 h-[55px] text-black font-normal disabled:opacity-50"
               style={{ background: "linear-gradient(to right, #00FF7F, #00C260)" }}
@@ -230,29 +345,26 @@ const KeywordAnalysisPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Results Section */}
           {searchPerformed && apiData && (
             <div className="mb-8">
-
-              {/* Keyword Table */}
               <div className="rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-[#21262D] border-b border-gray-700">
                       <tr>
-                        <th className="text-left py-4 px-6 text-gray-300 font-medium">Keyword</th>
-                        <th className="text-left py-4 px-6 text-gray-300 font-medium">Intent</th>
-                        <th className="text-left py-4 px-6 text-gray-300 font-medium">Value</th>
-                        <th className="text-left py-4 px-6 text-gray-300 font-medium">Trend</th>
-                        <th className="text-left py-4 px-6 text-gray-300 font-medium">KD%</th>
-                        <th className="text-left py-4 px-6 text-gray-300 font-medium">Result</th>
-                        <th className="text-left py-4 px-6 text-gray-300 font-medium">Last Update</th>
+                        <th className="text-left py-4 px-4 sm:px-6 text-gray-300 font-medium">Keyword</th>
+                        <th className="text-left py-4 px-4 sm:px-6 text-gray-300 font-medium">Intent</th>
+                        <th className="text-left py-4 px-4 sm:px-6 text-gray-300 font-medium">Value</th>
+                        <th className="text-left py-4 px-4 sm:px-6 text-gray-300 font-medium">Trend</th>
+                        <th className="text-left py-4 px-4 sm:px-6 text-gray-300 font-medium">KD%</th>
+                        <th className="text-left py-4 px-4 sm:px-6 text-gray-300 font-medium">Result</th>
+                        <th className="text-left py-4 px-4 sm:px-6 text-gray-300 font-medium">Last Update</th>
                       </tr>
                     </thead>
                     <tbody>
                       {keywordData.map((keyword) => (
-                        <tr key={keyword.id} className="">
-                          <td className="py-4 px-6">
+                        <tr key={keyword.id} className="hover:bg-[#21262D] transition-colors">
+                          <td className="py-4 px-4 sm:px-6">
                             <div className="flex items-center space-x-3">
                               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect x="0.5" y="0.5" width="19" height="19" rx="5.5" fill="#009DE8" />
@@ -262,16 +374,16 @@ const KeywordAnalysisPage: React.FC = () => {
                               <span className="text-white font-medium">{keyword.keyword}</span>
                             </div>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4 sm:px-6">
                             <div className={`w-6 h-6 rounded-full text-center ${getIntentColor(keyword.intent)}`}>{getIntentText(keyword.intent)}</div>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4 sm:px-6">
                             <span className="text-white">{keyword.value.toLocaleString()}</span>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4 sm:px-6">
                             {getTrendIcon(keyword.trend)}
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4 sm:px-6">
                             <span className={`font-medium flex items-center gap-1`}>
                               {keyword.kd}
                               <svg width="11" height="12" viewBox="0 0 11 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -279,10 +391,10 @@ const KeywordAnalysisPage: React.FC = () => {
                               </svg>
                             </span>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4 sm:px-6">
                             <span className="text-white">{keyword.result}</span>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4 sm:px-6">
                             <span className="text-white text-sm">{keyword.lastUpdate}</span>
                           </td>
                         </tr>
@@ -291,6 +403,8 @@ const KeywordAnalysisPage: React.FC = () => {
                   </table>
                 </div>
               </div>
+
+              {renderPagination()}
             </div>
           )}
         </div>
@@ -299,4 +413,4 @@ const KeywordAnalysisPage: React.FC = () => {
   )
 }
 
-export default KeywordAnalysisPage;
+export default KeywordAnalysisPage
