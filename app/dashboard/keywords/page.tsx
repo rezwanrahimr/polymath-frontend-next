@@ -176,7 +176,7 @@ const KeywordAnalysisPage: React.FC = () => {
           <div className="text-sm text-gray-400">
             Showing {startItem}-{endItem} of {apiData.data.totalKeywords} keywords
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <label htmlFor="itemsPerPage" className="text-sm text-gray-400 whitespace-nowrap">
               Show:
@@ -205,7 +205,7 @@ const KeywordAnalysisPage: React.FC = () => {
           >
             <ChevronsLeft className="w-4 h-4" />
           </button>
-          
+
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1 || isLoading}
@@ -265,7 +265,7 @@ const KeywordAnalysisPage: React.FC = () => {
           >
             <ChevronRight className="w-4 h-4" />
           </button>
-          
+
           <button
             onClick={() => handlePageChange(totalPages)}
             disabled={currentPage === totalPages || isLoading}
@@ -277,6 +277,9 @@ const KeywordAnalysisPage: React.FC = () => {
         </div>
       </div>
     )
+  }
+  const formatNumber = (num: number): string => {
+    return new Intl.NumberFormat('en-US').format(num)
   }
 
   return (
@@ -347,6 +350,28 @@ const KeywordAnalysisPage: React.FC = () => {
 
           {searchPerformed && apiData && (
             <div className="mb-8">
+              <div className="bg-[#161B22] border border-gray-700 rounded-lg p-6 mb-6 shadow-lg">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-lg bg-[#21262D]">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.5 14.5L4 19V5C4 4.44772 4.44772 4 5 4H19C19.5523 4 20 4.44772 20 5V19L14.5 14.5M9.5 14.5L12 12M9.5 14.5L12 17" stroke="#00FFFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-300">Total Keywords Found</h3>
+                      <p className="text-sm text-gray-400">Analyzed for {apiData.data.url}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl font-bold bg-gradient-to-r from-[#00FFFF] to-[#00FF7F] bg-clip-text text-transparent">
+                      {formatNumber(apiData.data.totalKeywords)}
+                    </span>
+                    <span className="text-gray-400">keywords</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 
 interface DashboardLoadingScreenProps {
-  progress?: number; // Optional prop for controlled progress
-  currentStep?: string; // Optional prop to show current step
+    progress?: number; // Optional prop for controlled progress
+    currentStep?: string; // Optional prop to show current step
 }
 
-const DashboardLoadingScreen = ({ 
-  progress: externalProgress, 
-  currentStep 
+const DashboardLoadingScreen = ({
+    progress: externalProgress,
+    currentStep
 }: DashboardLoadingScreenProps) => {
     const [internalProgress, setInternalProgress] = useState(0);
 
@@ -61,20 +61,21 @@ const DashboardLoadingScreen = ({
 
                 {/* Inner circle */}
                 <div className="absolute inset-4 rounded-full bg-[#0D1117] flex items-center justify-center">
-                    <div className="text-2xl font-bold text-[#00FFFF] animate-pulse">
-                        {Math.min(99, Math.floor(progress * 100))}%
+                    <div className="text-sm font-bold text-[#00FFFF] animate-pulse">
+                        {/* {Math.min(99, Math.floor(progress * 100))}% */}
+                        Please Wait...
                     </div>
                 </div>
             </div>
 
             <h2 className="text-2xl font-bold text-[#00FFFF] mb-2">Analyzing Website</h2>
 
-            <p className="text-[#8B949E] max-w-md text-center mb-6">
+            <p className="text-green-500 max-w-md text-center mb-6 text-lg">
                 {currentStep || getLoadingMessage(progress)}
             </p>
 
             {/* Animated dots */}
-            <div className="flex space-x-2">
+            {/* <div className="flex space-x-2">
                 {[...Array(3)].map((_, i) => (
                     <div
                         key={i}
@@ -85,20 +86,20 @@ const DashboardLoadingScreen = ({
                         }}
                     ></div>
                 ))}
-            </div>
+            </div> */}
 
             {/* Progress bar */}
-            <div className="w-full max-w-xs h-2 bg-[#30363D] rounded-full mt-8">
+            {/* <div className="w-full max-w-xs h-2 bg-[#30363D] rounded-full mt-8">
                 <div
                     className="h-full bg-gradient-to-r from-[#00BFFF] to-[#00FFFF] rounded-full transition-all duration-300"
                     style={{ width: `${Math.min(99, progress * 100)}%` }}
                 ></div>
-            </div>
+            </div> */}
 
             {/* Fun tip */}
-            <p className="text-[#6E7681] text-sm mt-4 italic">
+            {/* <p className="text-[#6E7681] text-sm mt-4 italic">
                 Did you know? {funFacts[Math.floor(progress * funFacts.length) % funFacts.length]}
-            </p>
+            </p> */}
         </div>
     );
 };
