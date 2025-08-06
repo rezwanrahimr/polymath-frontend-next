@@ -23,19 +23,17 @@ import jsPDF from "jspdf";
 import axios from "axios";
 
 // Constants
-const CACHE_KEY = "seoAnalysisCache";
-const CACHE_EXPIRY = 3600000; // 1 hour
-const CRAWL_CACHE_EXPIRY = 1800000; // 30 minutes
+const CACHE_KEY_PREFIX = "seoAnalysisCache";
+const CACHE_EXPIRY = 3600000; // 1 hour in milliseconds
 
 // Type definitions
 type AnalysisData = {
   data?: any;
   errorData?: any;
   brokenLinksData?: any;
-  analysisData?: any;
 };
 
-type ApiResponse = {
+type CachedData = {
   data: any;
   timestamp: number;
 };
@@ -71,7 +69,14 @@ const MainContent: React.FC = () => {
     type: "image" | "content" | "keyword";
     data: any;
   } | null>(null);
-  const [cachedAnalysis, setCachedAnalysis] = useState<AnalysisData>({});
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [errorData, setErrorData] = useState<any>(null);
+  const [brokenLinksData, setBrokenLinksData] = useState<any>(null);
+  const [apiErrors, setApiErrors] = useState<{
+    analysisError?: Error;
+    seoError?: Error;
+    brokenLinksError?: Error;
+  }>({});
   const [showingCachedData, setShowingCachedData] = useState(false);
   const previousUrlRef = useRef<string | null>(null);
   const [loadingState, setLoadingState] = useState<LoadingState>({
@@ -85,20 +90,14 @@ const MainContent: React.FC = () => {
     },
   });
 
-
-  // new state
-  const [analysisData, setAnalysisData] = useState<any>(null);
-  const [errorData, setErrorData] = useState<any>(null);
-  const [brokenLinksData, setBrokenLinksData] = useState<any>(null);
-  const [apiErrors, setApiErrors] = useState<{
-    analysisError?: Error;
-    seoError?: Error;
-    brokenLinksError?: Error;
-  }>({});
-
-
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL_DEV || '';
 
+  // Helper function to get cache key for a specific endpoint and URL
+  const getCacheKey = (endpoint: string, url: string) => {
+    return `${CACHE_KEY_PREFIX}:${endpoint}:${url.toLowerCase()}`; // Normalize URL to lowercase
+  };
+
+  // Get cached data with expiry check
   const getCachedData = (key: string): any | null => {
     if (typeof window === "undefined") return null;
 
@@ -106,27 +105,68 @@ const MainContent: React.FC = () => {
     if (!cached) return null;
 
     try {
-      const { data, timestamp }: ApiResponse = JSON.parse(cached);
-      if (Date.now() - timestamp < CACHE_EXPIRY) return data;
-      localStorage.removeItem(key); // Clear expired cache
+      const { data, timestamp }: CachedData = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_EXPIRY) {
+        return data;
+      }
+      // Remove expired cache
+      localStorage.removeItem(key);
       return null;
     } catch (e) {
+      console.error("Error parsing cached data:", e);
       localStorage.removeItem(key);
       return null;
     }
   };
 
+  // Set data to cache with current timestamp
   const setCachedData = (key: string, data: any) => {
     if (typeof window === "undefined") return;
-    localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+    const cacheItem: CachedData = {
+      data,
+      timestamp: Date.now()
+    };
+    localStorage.removeItem(key); // Clear existing cache first
+    localStorage.setItem(key, JSON.stringify(cacheItem));
   };
 
-  // Update the API call functions to include caching
-  const callPostApi = async (endpoint: string, urlParam: string) => {
-    const cacheKey = `${CACHE_KEY}:post:${endpoint}:${urlParam}`;
 
-    // For POST requests, we typically don't want to use cached data
-    // But we'll cache the result after the call
+  // Clear all cached data for a specific URL
+  const clearUrlCache = (url: string) => {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith(`${CACHE_KEY_PREFIX}:`) && key.endsWith(`:${url}`)) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
+
+  // Check if we have complete cached data for a URL
+  const hasCompleteCachedData = (url: string): boolean => {
+    const requiredKeys = [
+      getCacheKey("analyze/website", url),
+      getCacheKey("seo-analyzer/analyze", url),
+      getCacheKey("broken-links", url)
+    ];
+
+    return requiredKeys.every(key => {
+      const cached = getCachedData(key);
+      return cached !== null;
+    });
+  };
+
+  // Get all cached data for a URL
+  const getCompleteCachedData = (url: string): AnalysisData | null => {
+    if (!hasCompleteCachedData(url)) return null;
+
+    return {
+      data: getCachedData(getCacheKey("analyze/website", url)),
+      errorData: getCachedData(getCacheKey("seo-analyzer/analyze", url)),
+      brokenLinksData: getCachedData(getCacheKey("broken-links", url))
+    };
+  };
+
+  // API call functions with caching
+  const callPostApi = async (endpoint: string, urlParam: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/${endpoint}?url=${encodeURIComponent(urlParam)}`, {
         method: "POST",
@@ -137,29 +177,152 @@ const MainContent: React.FC = () => {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      setCachedData(cacheKey, data); // Cache the response
-      return data;
+      return await response.json();
     } catch (error) {
       console.error(`API post error (${endpoint}):`, error);
       throw error;
     }
   };
 
+  const callGetApi = async (endpoint: string, urlParam: string) => {
+    const cacheKey = getCacheKey(endpoint, urlParam);
 
-  // Handle showing cached data state
-  useEffect(() => {
-    if (loading && (analysisData || errorData || brokenLinksData)) {
-      setShowingCachedData(false);
+    // Check cache first
+    const cachedData = getCachedData(cacheKey);
+    if (cachedData) {
+      return cachedData;
     }
-  }, [loading, analysisData, errorData, brokenLinksData]);
-  // Processed data
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${endpoint}?url=${encodeURIComponent(urlParam)}`);
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      // Cache the response
+      setCachedData(cacheKey, data);
+      return data;
+    } catch (error) {
+      console.error(`API get error (${endpoint}):`, error);
+      throw error;
+    }
+  };
+
+  // Analysis handler with caching support
+  const handleAnalyze = async () => {
+    if (!url.trim()) return;
+
+    const currentUrl = url.trim();
+    previousUrlRef.current = currentUrl;
+
+    // Check if we have complete cached data
+    const cachedData = getCompleteCachedData(currentUrl);
+    if (cachedData) {
+      setAnalysisData(cachedData.data);
+      setErrorData(cachedData.errorData);
+      setBrokenLinksData(cachedData.brokenLinksData);
+      setSubmittedUrl(currentUrl);
+      setShowingCachedData(true);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setSubmittedUrl(currentUrl);
+      setActiveTab("overview");
+      setShowingCachedData(false);
+
+      // Reset loading state
+      setLoadingState({
+        progress: 0,
+        currentStep: LOADING_STEPS.INITIALIZING.message,
+        completedSteps: {
+          crawl: false,
+          brokenLinks: false,
+          seoAnalysis: false,
+          websiteAnalysis: false,
+        },
+      });
+
+      // Step 1: Initialization (10%)
+      await animateProgress(10, LOADING_STEPS.INITIALIZING.message);
+
+      // Step 2: Start crawler (30%)
+      await animateProgress(30, LOADING_STEPS.CRAWLING.message);
+      const crawlResult = await callPostApi("crawler/start", currentUrl);
+
+      if (!crawlResult?.status) {
+        throw new Error('Crawler failed to start');
+      }
+
+      setLoadingState(prev => ({
+        ...prev,
+        completedSteps: { ...prev.completedSteps, crawl: true }
+      }));
+
+      // Step 3: Broken links check (50%)
+      await animateProgress(50, LOADING_STEPS.BROKEN_LINKS.message);
+      await callPostApi("broken-links/crawl", currentUrl);
+
+      setLoadingState(prev => ({
+        ...prev,
+        completedSteps: { ...prev.completedSteps, brokenLinks: true }
+      }));
+
+      // Step 4: Fetch analysis data (70%)
+      await animateProgress(70, LOADING_STEPS.SEO_ANALYSIS.message);
+
+      // Call GET APIs sequentially and cache results
+      const [analysisRes, errorRes, brokenLinksRes] = await Promise.all([
+        callGetApi("analyze/website", currentUrl),
+        callGetApi("seo-analyzer/analyze", currentUrl),
+        callGetApi("broken-links", currentUrl)
+      ]);
+
+      setAnalysisData(analysisRes);
+      setErrorData(errorRes);
+      setBrokenLinksData(brokenLinksRes);
+
+      setLoadingState(prev => ({
+        ...prev,
+        completedSteps: {
+          ...prev.completedSteps,
+          seoAnalysis: true,
+          websiteAnalysis: true
+        }
+      }));
+
+      // Finalize (100%)
+      await animateProgress(100, LOADING_STEPS.FINALIZING.message);
+
+    } catch (error) {
+      console.error("Analysis error:", error);
+      setLoadingState(prev => ({
+        ...prev,
+        currentStep: 'Analysis failed. Please try again.'
+      }));
+
+      if (error instanceof Error) {
+        setApiErrors(prev => ({ ...prev, analysisError: error }));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Rest of your component code remains the same...
+  // (animateProgress, pollApiStatus, render methods, etc.)
+
+  // Processed data - uses cached data if showingCachedData is true
   const data = showingCachedData
-    ? cachedAnalysis.analysisData?.data
+    ? analysisData?.data
     : analysisData?.data;
 
   const effectiveErrorData = showingCachedData
-    ? { ...cachedAnalysis.errorData, ...cachedAnalysis.brokenLinksData }
+    ? { ...errorData, ...brokenLinksData }
     : errorData && brokenLinksData
       ? { ...errorData, ...brokenLinksData }
       : null;
@@ -222,162 +385,6 @@ const MainContent: React.FC = () => {
 
       checkStatus();
     });
-  };
-
-
-  const callGetApi = async (endpoint: string, urlParam: string) => {
-    const cacheKey = `${CACHE_KEY}:get:${endpoint}:${urlParam}`;
-
-    // Check cache first
-    const cachedData = getCachedData(cacheKey);
-    if (cachedData) {
-      return cachedData;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/${endpoint}?url=${encodeURIComponent(urlParam)}`);
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setCachedData(cacheKey, data); // Cache the response
-      return data;
-    } catch (error) {
-      console.error(`API get error (${endpoint}):`, error);
-      throw error;
-    }
-  };
-
-
-  // Analysis handler with sequential API calls
-  const handleAnalyze = async () => {
-    if (!url.trim()) return;
-
-    const isNewUrl = url.trim() !== previousUrlRef.current;
-    previousUrlRef.current = url.trim();
-
-    if (isNewUrl) {
-      // Clear all cached data for this URL
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith(`${CACHE_KEY}:`)) {
-          localStorage.removeItem(key);
-        }
-      });
-      setCachedAnalysis({});
-      setShowingCachedData(false);
-    } else {
-      // Check if we have complete cached data
-      const cachedAnalysisData = getCachedData(`${CACHE_KEY}:analyze/website:${url.trim()}`);
-      const cachedErrorData = getCachedData(`${CACHE_KEY}:seo-analyzer/analyze:${url.trim()}`);
-      const cachedBrokenLinksData = getCachedData(`${CACHE_KEY}:broken-links:${url.trim()}`);
-
-      if (cachedAnalysisData && cachedErrorData && cachedBrokenLinksData) {
-        setCachedAnalysis({
-          analysisData: cachedAnalysisData,
-          errorData: cachedErrorData,
-          brokenLinksData: cachedBrokenLinksData
-        });
-        setShowingCachedData(true);
-        return;
-      }
-    }
-    try {
-      setLoading(true);
-      setSubmittedUrl(url.trim());
-      setActiveTab("overview");
-
-      // Reset loading state
-      setLoadingState({
-        progress: 0,
-        currentStep: LOADING_STEPS.INITIALIZING.message,
-        completedSteps: {
-          crawl: false,
-          brokenLinks: false,
-          seoAnalysis: false,
-          websiteAnalysis: false,
-        },
-      });
-
-      // Step 1: Initialization (10%)
-      await animateProgress(10, LOADING_STEPS.INITIALIZING.message);
-
-      // Step 2: Start crawler (30%)
-      await animateProgress(30, LOADING_STEPS.CRAWLING.message);
-      const crawlResult = await callPostApi("crawler/start", url.trim());
-
-      if (!crawlResult?.status) {
-        throw new Error('Crawler failed to start');
-      }
-
-      setLoadingState(prev => ({
-        ...prev,
-        completedSteps: { ...prev.completedSteps, crawl: true }
-      }));
-
-      // Step 3: Broken links check (50%)
-      await animateProgress(50, LOADING_STEPS.BROKEN_LINKS.message);
-      await callPostApi("broken-links/crawl", url.trim());
-
-      setLoadingState(prev => ({
-        ...prev,
-        completedSteps: { ...prev.completedSteps, brokenLinks: true }
-      }));
-
-      // Step 4: Fetch analysis data (70%)
-      await animateProgress(70, LOADING_STEPS.SEO_ANALYSIS.message);
-
-      // Check if we have all data in cache first
-      const cachedAnalysis = getCachedData(`${CACHE_KEY}:get:analyze/website:${url.trim()}`);
-      const cachedError = getCachedData(`${CACHE_KEY}:get:seo-analyzer/analyze:${url.trim()}`);
-      const cachedBrokenLinks = getCachedData(`${CACHE_KEY}:get:broken-links:${url.trim()}`);
-
-      if (cachedAnalysis && cachedError && cachedBrokenLinks) {
-        // Use cached data
-        setAnalysisData(cachedAnalysis);
-        setErrorData(cachedError);
-        setBrokenLinksData(cachedBrokenLinks);
-        setShowingCachedData(true);
-      } else {
-        // Call GET APIs sequentially
-        const [analysisRes, errorRes, brokenLinksRes] = await Promise.all([
-          callGetApi("analyze/website", url.trim()),
-          callGetApi("seo-analyzer/analyze", url.trim()),
-          callGetApi("broken-links", url.trim())
-        ]);
-
-        setAnalysisData(analysisRes);
-        setErrorData(errorRes);
-        setBrokenLinksData(brokenLinksRes);
-        setShowingCachedData(false);
-      }
-
-      setLoadingState(prev => ({
-        ...prev,
-        completedSteps: {
-          ...prev.completedSteps,
-          seoAnalysis: true,
-          websiteAnalysis: true
-        }
-      }));
-
-      // Finalize (100%)
-      await animateProgress(100, LOADING_STEPS.FINALIZING.message);
-
-    } catch (error) {
-      console.error("Analysis error:", error);
-      setLoadingState(prev => ({
-        ...prev,
-        currentStep: 'Analysis failed. Please try again.'
-      }));
-
-      if (error instanceof Error) {
-        setApiErrors(prev => ({ ...prev, analysisError: error }));
-      }
-    } finally {
-      setLoading(false);
-    }
   };
 
 
@@ -513,14 +520,16 @@ const MainContent: React.FC = () => {
       if (status >= 400 && status < 500) return 'text-red-400'; // Client errors
       if (status >= 500) return 'text-red-500'; // Server errors
       if (status >= 300 && status < 400) return 'text-yellow-400'; // Redirects
-      return 'text-green-400'; // Success (200s)
+      return 'text-yellow-400'; // Success (200s)
     };
+
+    const filteredIssues = issues?.filter(item => item.status === 404 || item.status === 'Request Failed');
 
     return (
       <div className="mb-8">
         <h3 className="mb-8 text-lg font-medium text-white bg-red-500 w-fit p-2 rounded">{title}</h3>
         <div className="space-y-4 w-full">
-          {issues?.map((item) => (
+          {filteredIssues?.length > 0 ? filteredIssues?.map((item) => (
             <div key={item.url} className="w-full pb-4 border-b border-gray-600 md:flex md:justify-between">
               <div className="flex flex-col w-full mb-3 md:flex-row md:items-center md:gap-4">
                 <div className="flex items-center gap-2 w-full flex-wrap">
@@ -554,7 +563,7 @@ const MainContent: React.FC = () => {
                 </button>
               </div>
             </div>
-          ))}
+          )) : <h1 className="text-xl font-medium text-white font-mono">No {title} Issues Found!</h1>}
         </div>
       </div>
     );
@@ -620,7 +629,7 @@ const MainContent: React.FC = () => {
   }
 
   // Initial state
-  if (!submittedUrl && !showingCachedData && !cachedAnalysis.analysisData) {
+  if (!submittedUrl && !showingCachedData && !analysisData) {
     return (
       <div className="min-h-screen bg-[#0D1117] text-white">
         <div className="flex-1 p-4 md:p-6 lg:p-8">
