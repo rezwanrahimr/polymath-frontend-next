@@ -164,7 +164,6 @@ const MainContent: React.FC = () => {
       ? { ...errorData, ...brokenLinksData }
       : null;
 
-  console.log('Effective Data:', brokenLinksData);
   console.log('Effective Error Data:', effectiveErrorData);
   // Error state check
   const hasError = apiErrors.analysisError || apiErrors.seoError || apiErrors.brokenLinksError;
@@ -411,17 +410,24 @@ const MainContent: React.FC = () => {
     setCurrentIssue(null);
   };
 
-  // Data preparation helpers
-  const getChartData = () => {
-    if (!data) return [];
-    return data?.trends?.map(
-      (item: { month: string; health: number; issues: number }) => ({
-        month: item.month.toUpperCase().slice(0, 3),
-        health: item?.health,
-        issues: item.issues,
-      })
-    );
-  };
+  const staticChartData = [
+    { month: "SEP", health: 25, issues: 5 },
+    { month: "OCT", health: 50, issues: 5 },
+    { month: "NOV", health: 90, issues: 5 },
+    { month: "DEC", health: 85, issues: 10 },
+    { month: "JAN", health: 60, issues: 15 },
+    { month: "FEB", health: 80, issues: 20 },
+    { month: "MAR", health: 80, issues: 25 },
+    { month: "APR", health: 95, issues: 30 },
+    { month: "MAY", health: 65, issues: 35 },
+    { month: "JUN", health: 80, issues: 40 },
+    { month: "JUL", health: 90, issues: 50 },
+    { month: "AUG", health: 70, issues: 60 },
+  ];
+
+
+  const getChartData = () => staticChartData;
+
 
   const getPieChartData = () => {
     if (!data) return [];
@@ -436,20 +442,57 @@ const MainContent: React.FC = () => {
     <div className="mb-8">
       <h3 className="mb-8 text-lg font-medium text-white">{title}</h3>
       <div className="space-y-4 w-full">
-        {issues?.map((item, index) => (
-          <div key={index} className="w-full pb-4 border-b border-gray-600 md:flex md:justify-between">
+        {issues?.length > 0 ? issues?.map((item, index) => (
+          <div
+            key={index}
+            className="w-full pb-4 border-b border-gray-600 md:flex md:justify-between"
+          >
             <div className="flex items-center justify-between w-full mb-3">
               <div className="flex items-center space-x-2 w-full">
-                <svg width="22" height="23" viewBox="0 0 22 23" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="11" cy="11.5" r="10" stroke="#C8081B" strokeWidth="1.5" />
-                  <path d="M10.992 14.5H11.001" stroke="#C8081B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M11 11.5L11 7.5" stroke="#C8081B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  width="22"
+                  height="23"
+                  viewBox="0 0 22 23"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="11"
+                    cy="11.5"
+                    r="10"
+                    stroke="#C8081B"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M10.992 14.5H11.001"
+                    stroke="#C8081B"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M11 11.5L11 7.5"
+                    stroke="#C8081B"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
-                <Link href={item} target="_blank" className="text-base text-white underline cursor-pointer hover:text-blue-300">
-                  {item}
-                </Link>
+
+                {/* ✅ Truncation wrapper */}
+                <div className="w-0 flex-1">
+                  <Link
+                    href={item}
+                    target="_blank"
+                    className="block truncate text-base text-white underline cursor-pointer hover:text-blue-300"
+                    title={item} // optional: show full URL on hover
+                  >
+                    {item}
+                  </Link>
+                </div>
               </div>
             </div>
+
             <div className="flex flex-wrap justify-end w-full gap-6">
               <button
                 onClick={() => handleOpenModal("image")}
@@ -459,10 +502,11 @@ const MainContent: React.FC = () => {
               </button>
             </div>
           </div>
-        ))}
+        )) : <h1 className="text-xl font-medium text-white font-mono">No {title} Issues Found!</h1>}
       </div>
     </div>
   );
+
 
   const BrokenLinkrenderIssue = (title: string, issues: any[]) => {
     const getStatusColor = (status: number) => {
@@ -505,7 +549,7 @@ const MainContent: React.FC = () => {
               </div>
 
               <div className="flex justify-end w-full mt-3 md:mt-0 md:w-auto">
-                <button className="px-4 py-2 rounded-xl font-normal border border-[#00FF7F] text-[#00FF7F] bg-[#00FF7F]/8 hover:bg-[#00FF7F]/20 transition-colors">
+                <button className="px-4 py-2 rounded-xl font-normal border border-[#00FF7F] text-[#00FF7F] bg-[#00FF7F]/8 hover:bg-[#00FF7F]/20 transition-colors" onClick={() => handleOpenModal("image")}>
                   Solution
                 </button>
               </div>
@@ -518,26 +562,32 @@ const MainContent: React.FC = () => {
 
   const totalIssues =
     (effectiveErrorData?.data?.brokenLinks?.length || 0) +
-    (effectiveErrorData?.data?.oversizedImages?.length || 0) +
-    (effectiveErrorData?.data?.blurryImages?.length || 0);
+    (effectiveErrorData?.oversizedImages?.length || 0) +
+    (effectiveErrorData?.blurryImages?.length || 0) +
+    (effectiveErrorData?.websiteLink?.length || 0);
 
-  //VM32020 _3f3d7e94._.js:470 Error: Objects are not valid as a React child (found: object with keys {url, status, sourcePage, checkedAt}). If you meant to render a collection of children, use an array instead.
 
   const renderErrorContent = () => {
-    if (!effectiveErrorData) return null;
+    if (!effectiveErrorData?.data?.brokenLinks?.length && !effectiveErrorData?.data?.oversizedImages?.length && !effectiveErrorData?.data?.blurryImages?.length) return <div className="p-4 md:p-6 max-w-full text-white text-center text-2xl font-bold">No Issues Found!</div>;
 
     return (
       <div className="p-4 md:p-6 max-w-full">
-        <div className="p-8 mb-6 rounded-lg bg-white/5">
-          {effectiveErrorData?.data?.brokenLinks && BrokenLinkrenderIssue("Broken Links", effectiveErrorData?.data?.brokenLinks)}
+        {effectiveErrorData?.data?.brokenLinks?.length > 0 && <div className="p-8 mb-6 rounded-lg bg-white/5 max-w-full">
+          {BrokenLinkrenderIssue("Broken Links", effectiveErrorData?.data?.brokenLinks)}
+        </div>}
+
+        <div className="p-8 mb-6 rounded-lg bg-white/5 max-w-full">
+          {renderIssueGroup("Oversized Images", effectiveErrorData?.oversizedImages || [])}
         </div>
-        {/* <div className="p-8 mb-6 rounded-lg bg-white/5">
-          {renderIssueGroup("Oversized Images", effectiveErrorData?.data?.oversizedImages || [])}
+
+        <div className="p-8 mb-6 rounded-lg bg-white/5 max-w-full">
+          {renderIssueGroup("Blurry Images", effectiveErrorData?.blurryImages || [])}
         </div>
-        <div className="p-8 mb-6 rounded-lg bg-white/5">
-          {renderIssueGroup("Blurry Images", effectiveErrorData?.data?.blurryImages || [])}
-        </div> */}
-      </div>
+
+        <div className="p-8 mb-6 rounded-lg bg-white/5 max-w-full">
+          {renderIssueGroup("Website Links", effectiveErrorData?.websiteLink || [])}
+        </div>
+      </div >
     );
   };
 
@@ -765,7 +815,7 @@ const MainContent: React.FC = () => {
                             <circle cx="60" cy="60" r="50" stroke="#00FF7F" strokeWidth="10" fill="none" strokeDasharray={`${data?.seoScore * 3.14159} ${100 * 3.14159}`} strokeLinecap="round" />
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-2xl font-bold text-white md:text-3xl">{data?.seoScore}</span>
+                            <span className="text-2xl font-bold text-white md:text-3xl">{data?.seoScore ?? "N/A"}</span>
                           </div>
                         </div>
                         <p className="text-white text-medium md:text-lg">SEO Score</p>
